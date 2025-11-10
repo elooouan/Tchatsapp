@@ -1,4 +1,4 @@
-package fr.uga.im2ag.m1info.chatservice.client;
+package fr.uga.im2ag.m1info.chatservice.common;
 
 public class User {
     private final int userId;
