@@ -21,4 +21,8 @@ public class User {
         this.pseudo = pseudo;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof User user) && user.userId == userId;
+    }
 }
