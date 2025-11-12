@@ -1,9 +1,16 @@
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/Client.java
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/Client2.java
-/Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/ButtonsBar.java
+/Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ClientState.java
+/Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/ButtonContact.java
+/Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/ButtonMessage.java
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/Chat.java
+/Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/ChatWindow.java
+/Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/ContactsList.java
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/Window.java
+/Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/Group.java
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/Packet.java
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/PacketProcessor.java
+/Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/PacketTypes.java
+/Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/User.java
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/IdGenerator.java
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/TchatsAppServer.java

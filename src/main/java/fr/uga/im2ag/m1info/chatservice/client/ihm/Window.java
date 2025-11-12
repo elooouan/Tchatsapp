@@ -7,8 +7,8 @@ public class Window extends JFrame {
 
     public Window() {
         setLayout(new BorderLayout());
-        add(new Chat(), BorderLayout.CENTER);
-        add(new ButtonsBar(), BorderLayout.SOUTH);
+        add(new ChatWindow(), BorderLayout.CENTER);
+        add(new ChatWindow.ButtonsBar(), BorderLayout.SOUTH);
         pack();
         setSize(new Dimension(800, 600));
         setVisible(true);

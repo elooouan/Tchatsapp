@@ -5,19 +5,17 @@ import java.awt.*;
 
 public class Chat extends JScrollPane {
 
-    private JList<String> langages;
-
-    public Chat()
-    {
-        super(new JTextArea(5, 30));
+    public Chat() {
+        super();
         setPreferredSize(new Dimension(100, 200));
-        DefaultListModel<String> model = new DefaultListModel<>();
-        model.addElement("Message 1");
-        model.addElement("Message 2");
-        model.addElement("Message 3");
-        langages = new JList<>(model);
-        add(langages);
-        setBackground(Color.ORANGE);
 
+        JPanel listContainer = new JPanel();
+        listContainer.setLayout(new BoxLayout(listContainer, BoxLayout.Y_AXIS));
+        listContainer.add(new ButtonMessage("Message 1"));
+        listContainer.add(new ButtonMessage("Message 2"));
+        listContainer.add(new ButtonMessage("Message 3"));
+        setViewportView(listContainer);
+        setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     }
 }
