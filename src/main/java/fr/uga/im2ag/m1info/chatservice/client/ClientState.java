@@ -13,16 +13,35 @@ public class ClientState {
     private Map<Integer, Group> groups = new HashMap<>();
     private Map<Integer, Set<User>> groupMembers= new HashMap<>();
 
+    ClientState(int id) {
+        contacts = new HashMap<>();
+        groups = new HashMap<>();
+        groupMembers = new HashMap<>();
+    }
+
     // Setters
-    public void setId(int id) { this.id = id; }
-    public void setContact(int userId, String username) { contacts.put(userId, username); }
-    public void setGroup(int groupId, Group group) { groups.put(groupId, group); }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public void setContact(int userId, String username) {
+        contacts.put(userId, username);
+    }
+    public void setGroup(int groupId, Group group) {
+        groups.put(groupId, group);
+        groupMembers.put(groupId, group.getMembers());
+    }
 
     // Getters
     public int getId() { return id; }
-    public String getContact(int userId) { return contacts.get(userId); } 
-    public Group getGroup(int groupId) { return groups.get(groupId); }
-    public Set<User> getGroupMembers(int groupId) { return groupMembers.get(groupId); }
+    public String getContact(int userId) {
+        return contacts.get(userId);
+    }
+    public Group getGroup(int groupId) {
+        return groups.get(groupId);
+    }
+    public Set<User> getGroupMembers(int groupId) {
+        return groupMembers.get(groupId);
+    }
 
     // Add/Remove
     public void removeGroup(int groupId) {
@@ -30,7 +49,10 @@ public class ClientState {
         groupMembers.remove(groupId);
     } 
 
-    public void addMember(int groupId, User user) { groupMembers.get(groupId).add(user); }
+    public void addMember(int groupId, User user) {
+        groupMembers.get(groupId).add(user);
+    }
+
     public void removeMember(int groupId, User user) {
         groupMembers.get(groupId).remove(user);
         // Delete the group if it's empty

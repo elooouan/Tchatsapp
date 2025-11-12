@@ -25,4 +25,9 @@ public class User {
     public boolean equals(Object o) {
         return (o instanceof User user) && user.userId == userId;
     }
+
+    @Override
+    public int hashCode() {
+        return userId;
+    }
 }

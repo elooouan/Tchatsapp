@@ -1,5 +1,6 @@
 package fr.uga.im2ag.m1info.chatservice.common;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class Group {
@@ -8,10 +9,13 @@ public class Group {
     private int adminId;
     private Set<User> members;
 
+    private Group(){}
+
     public Group(int id, String title, int adminId) {
         this.id = id;
         this.title = title;
         this.adminId = adminId;
+        this.members = new HashSet<>();
         members.add(new User(adminId, null)); // Might need a username for the admin
     }
 
@@ -24,6 +28,15 @@ public class Group {
     // Setters
     public void setTitle(String title) { this.title = title; }
 
-    public void addMember(User user) { members.add(user); }
-    public void removeMember(User user) { members.remove(user); }
+    public boolean addMember(User user) {
+        if(!members.contains(user)) return false;
+        members.add(user);
+        return true;
+    }
+
+    public boolean removeMember(User user) {
+        if(user.getUserId() == adminId || !members.contains(user)) return false;
+        members.remove(user);
+        return true;
+    }
 }
