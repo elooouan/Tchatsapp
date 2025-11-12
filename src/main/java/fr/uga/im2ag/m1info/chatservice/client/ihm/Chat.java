@@ -11,9 +11,9 @@ public class Chat extends JScrollPane {
 
         JPanel listContainer = new JPanel();
         listContainer.setLayout(new BoxLayout(listContainer, BoxLayout.Y_AXIS));
-        listContainer.add(new ButtonMessage("Message 1"));
-        listContainer.add(new ButtonMessage("Message 2"));
-        listContainer.add(new ButtonMessage("Message 3"));
+        listContainer.add(new ButtonMessage("Moi", "Message 1"));
+        listContainer.add(new ButtonMessage("Moi", "Message 2"));
+        listContainer.add(new ButtonMessage("Moi", "Message 3"));
         setViewportView(listContainer);
         setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
