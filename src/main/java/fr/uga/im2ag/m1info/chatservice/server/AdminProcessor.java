@@ -4,14 +4,12 @@ public class AdminProcessor {
     private TchatsAppServer server;
     private UserRegistry userRegistry;
     private GroupRegistry groupRegistry;
-    private UserGroupRegistry userGroupRegistry;
     private IdGenerator idGenerator;
 
     public AdminProcessor(TchatsAppServer server){
         this.server = server;
         userRegistry = new UserRegistry(this);
         groupRegistry = new GroupRegistry(this);
-        userGroupRegistry = new UserGroupRegistry(this);
     }
 
     public UserRegistry getUserRegistry() {
@@ -20,8 +18,9 @@ public class AdminProcessor {
     public GroupRegistry getGroupRegistry() {
         return groupRegistry;
     }
-    public UserGroupRegistry getUserGroupRegistry() {
-        return userGroupRegistry;
+
+    public int genId(){
+        return idGenerator.generateId();
     }
 
 }

@@ -21,7 +21,10 @@ public class UserRegistry {
     }
 
     public int createUser() {
-        return 0;
+        int userId = adminProcessor.genId();
+        User user = new User(userId,null);
+        users.put(userId,user);
+        return userId;
     }
 
     public int createUser(int userId) {
