@@ -1,5 +1,8 @@
 package fr.uga.im2ag.m1info.chatservice.server;
 
+import fr.uga.im2ag.m1info.chatservice.common.Group;
+import fr.uga.im2ag.m1info.chatservice.common.User;
+
 public class AdminProcessor {
     private TchatsAppServer server;
     private UserRegistry userRegistry;
@@ -12,15 +15,16 @@ public class AdminProcessor {
         groupRegistry = new GroupRegistry(this);
     }
 
-    public UserRegistry getUserRegistry() {
-        return userRegistry;
-    }
-    public GroupRegistry getGroupRegistry() {
-        return groupRegistry;
+    public int generateId(){
+        return idGenerator.generateId();
     }
 
-    public int genId(){
-        return idGenerator.generateId();
+    public User getUserById(int userId){
+        return userRegistry.getUserById(userId);
+    }
+
+    public Group getGroupById(int groupId){
+        return groupRegistry.getGroupById(groupId);
     }
 
 }

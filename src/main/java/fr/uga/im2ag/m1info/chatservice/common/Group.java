@@ -39,4 +39,8 @@ public class Group {
         members.remove(user);
         return true;
     }
+
+    public boolean hasMember(User user){
+        return members.contains(user);
+    }
 }
