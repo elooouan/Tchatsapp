@@ -8,11 +8,12 @@ import java.util.Map;
 
 public class UserRegistry {
     private IdGenerator idGenerator;
-
+    private AdminProcessor adminProcessor;
     private Map<Integer,User> users;
 
-    public UserRegistry() {
+    public UserRegistry(AdminProcessor adminProcessor) {
         this.users = new HashMap<>();
+        this.adminProcessor = adminProcessor;
     }
 
     public boolean existUser(int userId) {

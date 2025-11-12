@@ -10,9 +10,11 @@ import java.util.Map;
 
 public class UserGroupRegistry {
     private Map<Integer, List<Integer>> userGroups;
+    private AdminProcessor adminProcessor;
 
-    UserGroupRegistry() {
+    UserGroupRegistry(AdminProcessor adminProcessor) {
         userGroups = new HashMap<>();
+        this.adminProcessor = adminProcessor;
     }
 
     public void addGroupToUser(User user, Group group){
@@ -35,8 +37,10 @@ public class UserGroupRegistry {
             List<Integer> groups = userGroups.get(user.getUserId());
             List<Group> groupList = new ArrayList<>();
             for(Integer groupId : groups){
-
+                groupList.add(adminProcessor.getGroupRegistry().getGroupById(groupId));
             }
+            return groupList;
         }
+        return null;
     }
 }
