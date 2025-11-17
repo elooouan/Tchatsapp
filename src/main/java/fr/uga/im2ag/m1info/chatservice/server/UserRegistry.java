@@ -6,41 +6,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class UserRegistry {
-    private IdGenerator idGenerator;
-    private AdminProcessor adminProcessor;
-    private Map<Integer,User> users;
+    private Map<Integer,User> users = new HashMap<>();
 
-    public UserRegistry(AdminProcessor adminProcessor) {
-        this.users = new HashMap<>();
-        this.adminProcessor = adminProcessor;
-    }
-
-    public boolean existsUser(int userId) {
+    public boolean exists(int userId) {
         return users.containsKey(userId);
     }
-
-    public int createUser() {
-        int userId = adminProcessor.generateId();
-        User user = new User(userId,null);
-        users.put(userId,user);
-        return userId;
+    
+    /* Called AFTER the server generates a userId with IdGenerator -> AdmindProcessor calls UserRegistry not the other way around */
+    public void createUser(int userId) {
+        users.put(userId, new User(userId, null));
     }
 
-    public User getUserById(int userId){
-        if(!existsUser(userId)){return null;}
+    public User getUser(int userId) {
         return users.get(userId);
     }
 
-    public boolean setPseudoUser(int userId, String pseudo){
-        if(!existsUser(userId)){return false;}
-        User user = getUserById(userId);
-        user.setPseudo(pseudo);
-        return true;
+    public void setPseudo(int userId, String pseudo) {
+        if (exists(userId)) users.get(userId).setPseudo(pseudo);
     }
 
-    public String getPseudoUser(int userId){
-        if(!existsUser(userId)){return null;}
-        User user = getUserById(userId);
-        return user.getPseudo();
+    public String getPseudo(int userId) {
+        return exists(userId) ? users.get(userId).getPseudo() : null;
     }
 }
