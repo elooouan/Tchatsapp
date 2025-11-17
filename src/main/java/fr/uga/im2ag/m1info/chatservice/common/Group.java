@@ -7,40 +7,22 @@ public class Group {
     private int id;
     private String title;
     private int adminId;
-    private Set<User> members;
-
-    private Group(){}
+    private Set<Integer> members = new HashSet<>();
 
     public Group(int id, String title, int adminId) {
         this.id = id;
         this.title = title;
         this.adminId = adminId;
-        this.members = new HashSet<>();
-        members.add(new User(adminId, null)); // Might need a username for the admin
+        members.add(adminId);
     }
 
-    // Getters
     public int getId() { return id; }
     public String getTitle() { return title; }
-    public int getAdminId() { return adminId; }
-    public Set<User> getMembers() { return members; }
-
-    // Setters
     public void setTitle(String title) { this.title = title; }
+    public int getAdminId() { return adminId; }
+    public Set<Integer> getMembers() { return members; }
 
-    public boolean addMember(User user) {
-        if(!members.contains(user)) return false;
-        members.add(user);
-        return true;
-    }
-
-    public boolean removeMember(User user) {
-        if(user.getUserId() == adminId || !members.contains(user)) return false;
-        members.remove(user);
-        return true;
-    }
-
-    public boolean hasMember(User user){
-        return members.contains(user);
-    }
+    public boolean addMember(int userId) { return members.add(userId); }
+    public boolean removeMember(int userId) { return members.remove(userId); }
+    public boolean hasMember(int userId) { return members.contains(userId); }
 }

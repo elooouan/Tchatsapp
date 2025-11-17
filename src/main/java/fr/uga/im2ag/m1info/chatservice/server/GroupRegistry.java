@@ -3,79 +3,53 @@ package fr.uga.im2ag.m1info.chatservice.server;
 import fr.uga.im2ag.m1info.chatservice.common.Group;
 import fr.uga.im2ag.m1info.chatservice.common.User;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class GroupRegistry {
-    private AdminProcessor adminProcessor;
-    private Map<Integer, Group> groups;
-    GroupRegistry(AdminProcessor adminProcessor){
-        this.adminProcessor = adminProcessor;
-        groups = new HashMap<>();
-    }
+    private Map<Integer, Group> groups = new HashMap<>();
+    IdGenerator idGenerator;
 
     public int createGroup(String title, int adminId){
-        int groupId = adminProcessor.generateId();
-        Group group = new Group(groupId,title,adminId);
-        groups.put(groupId,group);
+        int groupId = idGenerator.generateId();
+        groups.put(groupId, new Group(groupId, title, adminId));
+        
         return groupId;
     }
 
-    public boolean existsGroup(int groupId){
+    public boolean exists(int groupId){
         return groups.containsKey(groupId);
     }
 
-    public Group getGroupById(Integer groupId){
-        return groups.get(groupId);
+    public Group getGroupById(Integer groupId) { return groups.get(groupId); }
+
+    public boolean isAdmin(int groupId, int userId){
+        Group g = groups.get(groupId);
+        return g != null && g.getAdminId() == userId;
     }
 
-    public boolean isGroupAdmin(int groupId, int userId){
-        if(!existsGroup(groupId)){return false;}
-        return groups.get(groupId).getAdminId() == userId;
+    public Set<Integer> membersOf(int groupId){
+        Group g = groups.get(groupId);
+        return g == null ? Collections.emptySet() : g.getMembers();
     }
 
-    public Set<User> membersOfGroup(int groupId){
-        if(!existsGroup(groupId)){return null;}
-        return groups.get(groupId).getMembers();
+    public boolean addMember(int groupId, int userId){
+        Group g = groups.get(groupId);
+        if (g == null) return false;
+        return g.addMember(userId);
     }
 
-    public boolean addGroupMember(int groupId, int userId){
-        if(!existsGroup(groupId)){return false;}
+    public boolean removeMember(int groupId, int userId){
+        Group g = groups.get(groupId);
+        if (g == null || g.getAdminId() == userId) return false; // Can't remove admin
+        return g.removeMember(userId);
+    }
 
-        Group group = groups.get(groupId);
-        User user = adminProcessor.getUserById(userId);
-
-        if(user == null || group.hasMember(user)){return false;}
-
-        group.addMember(user);
+    public boolean rename(int groupId, String title){
+        Group g = groups.get(groupId);
+        if (g == null) return false;
+        g.setTitle(title);
         return true;
     }
 
-    public boolean removeGroupMember(int groupId, int userId){
-        if(!existsGroup(groupId)){return false;}
-
-        Group group = groups.get(groupId);
-        User user = adminProcessor.getUserById(userId);
-
-        if(user == null || !group.hasMember(user) || group.getAdminId() == userId){return false;}
-
-        group.removeMember(user);
-        return true;
-    }
-
-    public boolean renameGroup(int groupId, String title){
-        if(!existsGroup(groupId)){return false;}
-
-        Group group = groups.get(groupId);
-        group.setTitle(title);
-        return true;
-    }
-
-    public boolean deleteGroup(int groupId){
-        if(!existsGroup(groupId)){return false;}
-
-        groups.remove(groupId);
-        return true;
-    }
+    public boolean delete(int groupId) { return groups.remove(groupId) != null; }
 }
