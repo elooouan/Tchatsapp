@@ -11,7 +11,7 @@ public class ClientState {
 
     private Map<Integer, String> contacts = new HashMap<>(); // We can use Set<User> instead but it's more of a pain
     private Map<Integer, Group> groups = new HashMap<>();
-    private Map<Integer, Set<User>> groupMembers= new HashMap<>();
+    private Map<Integer, Set<Integer>> groupMembers= new HashMap<>();
 
     ClientState(int id) {
         contacts = new HashMap<>();
@@ -39,8 +39,9 @@ public class ClientState {
     public Group getGroup(int groupId) {
         return groups.get(groupId);
     }
-    public Set<User> getGroupMembers(int groupId) {
-        return groupMembers.get(groupId);
+    public Set<Integer> getGroupMembers(int groupId) {
+        Set<Integer> members = groupMembers.get(groupId);
+        return Collections.unmodifiableSet(members);
     }
 
     // Add/Remove
@@ -49,12 +50,12 @@ public class ClientState {
         groupMembers.remove(groupId);
     } 
 
-    public void addMember(int groupId, User user) {
-        groupMembers.get(groupId).add(user);
+    public void addMember(int groupId, Integer userId) {
+        groupMembers.get(groupId).add(userId);
     }
 
-    public void removeMember(int groupId, User user) {
-        groupMembers.get(groupId).remove(user);
+    public void removeMember(int groupId, Integer userId) {
+        groupMembers.get(groupId).remove(userId);
         // Delete the group if it's empty
         if (groupMembers.get(groupId).isEmpty()) {
             removeGroup(groupId);
