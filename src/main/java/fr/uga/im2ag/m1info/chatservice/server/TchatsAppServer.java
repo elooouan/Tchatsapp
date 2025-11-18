@@ -426,9 +426,6 @@ public class TchatsAppServer implements PacketSender {
         TchatsAppServer s =  new TchatsAppServer(port, workers);
         s.loadData();
 
-        //AdminProcessor adminProcessor = new AdminProcessor(s);
-
-
         s.saveData();
 
         s.start(); // methode bloquante

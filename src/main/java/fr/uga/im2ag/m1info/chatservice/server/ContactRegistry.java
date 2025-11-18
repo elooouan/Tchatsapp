@@ -2,13 +2,14 @@ package fr.uga.im2ag.m1info.chatservice.server;
 
 import fr.uga.im2ag.m1info.chatservice.common.User;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * Stores contact relations between users.
  * Contacts are symmetric: if A has B, then B also has A.
  */
-public class ContactRegistry {
+public class ContactRegistry implements Serializable {
     private Map<User, Set<User>> contacts = new HashMap<>();
 
     public void addContact(User user, User newContact) {

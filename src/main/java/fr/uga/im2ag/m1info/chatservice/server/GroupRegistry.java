@@ -2,9 +2,10 @@ package fr.uga.im2ag.m1info.chatservice.server;
 
 import fr.uga.im2ag.m1info.chatservice.common.Group;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class GroupRegistry {
+public class GroupRegistry implements Serializable {
     private Map<Integer, Group> groups = new HashMap<>();
     IdGenerator idGenerator;
 

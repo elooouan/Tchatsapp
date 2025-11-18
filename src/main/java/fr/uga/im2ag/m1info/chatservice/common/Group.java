@@ -1,10 +1,11 @@
 package fr.uga.im2ag.m1info.chatservice.common;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Group {
+public class Group implements Serializable {
     private int id;
     private String title;
     private int adminId;

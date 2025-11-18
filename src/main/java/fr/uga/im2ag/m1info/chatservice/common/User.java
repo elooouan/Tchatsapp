@@ -1,6 +1,8 @@
 package fr.uga.im2ag.m1info.chatservice.common;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
     private final int userId;
     private String pseudo;
 
