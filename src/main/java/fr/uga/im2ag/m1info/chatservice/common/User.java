@@ -9,25 +9,15 @@ public class User {
         this.pseudo = pseudo;
     }
 
-    public String getPseudo() {
-        return pseudo;
-    }
+    public String getPseudo() { return pseudo; }
 
-    public int getUserId() {
-        return userId;
-    }
+    public int getUserId() { return userId; }
 
-    public void setPseudo(String pseudo) {
-        this.pseudo = pseudo;
-    }
+    public void setPseudo(String pseudo) { this.pseudo = pseudo; }
 
     @Override
-    public boolean equals(Object o) {
-        return (o instanceof User user) && user.userId == userId;
-    }
+    public boolean equals(Object o) { return (o instanceof User user) && user.userId == userId; }
 
     @Override
-    public int hashCode() {
-        return userId;
-    }
+    public int hashCode() { return userId; }
 }

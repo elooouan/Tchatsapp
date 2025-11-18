@@ -1,7 +1,6 @@
 package fr.uga.im2ag.m1info.chatservice.server;
 
 import fr.uga.im2ag.m1info.chatservice.common.Group;
-import fr.uga.im2ag.m1info.chatservice.common.User;
 
 import java.util.*;
 
@@ -16,9 +15,7 @@ public class GroupRegistry {
         return groupId;
     }
 
-    public boolean exists(int groupId){
-        return groups.containsKey(groupId);
-    }
+    public boolean exists(int groupId){ return groups.containsKey(groupId); }
 
     public Group getGroupById(Integer groupId) { return groups.get(groupId); }
 

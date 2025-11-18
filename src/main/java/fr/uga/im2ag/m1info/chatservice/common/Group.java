@@ -1,5 +1,6 @@
 package fr.uga.im2ag.m1info.chatservice.common;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,7 +21,7 @@ public class Group {
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public int getAdminId() { return adminId; }
-    public Set<Integer> getMembers() { return members; }
+    public Set<Integer> getMembers() { return Collections.unmodifiableSet(members); }
 
     public boolean addMember(int userId) { return members.add(userId); }
     public boolean removeMember(int userId) { return members.remove(userId); }
