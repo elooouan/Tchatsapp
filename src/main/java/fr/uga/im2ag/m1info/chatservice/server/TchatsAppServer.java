@@ -12,8 +12,9 @@
 package fr.uga.im2ag.m1info.chatservice.server;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
-import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
+import fr.uga.im2ag.m1info.chatservice.server.packets.PacketRouter;
+import fr.uga.im2ag.m1info.chatservice.server.packets.PacketStrategy;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -66,7 +67,7 @@ public class TchatsAppServer implements PacketSender {
     /**
      * The processor responsible for processing received packets
      */
-    private PacketProcessor packetProcessor;
+    private PacketRouter packetProcessor;
 
     /**
      * Generator used for new client ids
@@ -130,7 +131,7 @@ public class TchatsAppServer implements PacketSender {
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
         this.workers = Executors.newFixedThreadPool(workerThreads);
         setClientIdGenerator(new AtomicInteger(1)::getAndIncrement); // by default, clients id are generated using a sequence (use atomic integer for concurrency)
-        setPacketProcessor(this::sendPacket); // by default, forward the message to the recipient (works only for client to client, but not for groups)
+        setPacketProcessor(new PacketRouter(serverState));
         LOG.info("Server started on port " + port + " with " + workerThreads + " workers");
 
     }
@@ -173,7 +174,7 @@ public class TchatsAppServer implements PacketSender {
      * Set the packet processor to be used to handle requests from clients
      * @param pp
      */
-    public void setPacketProcessor(PacketProcessor pp) {
+    public void setPacketProcessor(PacketRouter pp) {
         if (pp==null) throw new NullPointerException("Packet Processor cannot be null");
         packetProcessor=pp;
     }
@@ -324,7 +325,7 @@ public class TchatsAppServer implements PacketSender {
                         if (state.currentPacket.fillFrom(buf).isCompleted()) {
                             Packet msg = state.currentPacket.build();
                             state.currentPacket=null;
-                            workers.submit(() -> packetProcessor.process(msg));
+                            workers.submit(() -> packetProcessor.route(msg));
                             LOG.info("packet read from client " + state.clientId);
                         }
                     }

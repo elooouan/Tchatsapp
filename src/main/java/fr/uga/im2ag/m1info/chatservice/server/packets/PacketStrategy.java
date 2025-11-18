@@ -9,8 +9,10 @@
  * You should have received a copy of the GNU General Public License along with TchatsApp. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package fr.uga.im2ag.m1info.chatservice.common;
+package fr.uga.im2ag.m1info.chatservice.server.packets;
 
-public interface PacketProcessor {
-    public void process(Packet msg);
+import fr.uga.im2ag.m1info.chatservice.common.Packet;
+
+public interface PacketStrategy {
+    void process(Packet msg);
 }

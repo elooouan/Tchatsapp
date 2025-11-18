@@ -1,6 +1,7 @@
-package fr.uga.im2ag.m1info.chatservice.server;
+package fr.uga.im2ag.m1info.chatservice.server.packets;
 
 import fr.uga.im2ag.m1info.chatservice.common.*;
+import fr.uga.im2ag.m1info.chatservice.server.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -8,21 +9,18 @@ import java.nio.charset.StandardCharsets;
 /*
  * Handles commands of type "admin" (destId == 0)
  */
-public class AdminProcessor implements PacketProcessor {
-    private PacketSender server;
+public class AdminProcessor implements PacketStrategy {
+    private ServerState server;
     private UserRegistry users;
     private GroupRegistry groups;
     private ContactRegistry contacts;
     private IdGenerator idGenerator;
 
-    public AdminProcessor(PacketSender server,
-                          UserRegistry users,
-                          GroupRegistry groups,
-                          ContactRegistry contacts) {
+    public AdminProcessor(ServerState server) {
         this.server = server;
-        this.users = users;
-        this.groups = groups;
-        this.contacts = contacts;
+        this.users = server.getUserRegistry();
+        this.groups = server.getGroupRegistry();
+        this.contacts = server.getContactRegistry();
     }
 
     @Override
@@ -40,9 +38,14 @@ public class AdminProcessor implements PacketProcessor {
         int type = payload.get();
 
         switch (type) {
-            case PacketTypes.CREATE_GROUP:
+            case PacketType.CREATE_GROUP:
                 handleCreateGroup(pkt.from(), payload);
                 break;
+            case PacketType.ADD_MEMBER:
+            case PacketType.REMOVE_MEMBER:
+            case PacketType.RENAME_GROUP:
+            case PacketType.DELETE_GROUP:
+                break; // todo
         }
     }
 
@@ -98,11 +101,11 @@ public class AdminProcessor implements PacketProcessor {
     // We can later switch to real PacketTypes.ERROR
     private void sendOk(int to, String msg) {
         Packet p = Packet.createTextMessage(0, to, "OK " + msg);
-        server.sendPacket(p);
+        //server.sendPacket(p);
     }
 
     private void sendError(int to, String msg) {
         Packet p = Packet.createTextMessage(0, to, "ERROR " + msg);
-        server.sendPacket(p);
+        //server.sendPacket(p);
     }
 }
