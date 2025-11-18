@@ -11,6 +11,7 @@ public class PacketRouter {
 
     /* Singleton ? */
     ServerState serverState;
+
     public PacketRouter(ServerState serverState) {
         this.serverState = serverState;
     }
@@ -21,7 +22,7 @@ public class PacketRouter {
 
         PacketStrategy strategy;
 
-        switch(type) {
+        switch (type) {
             case PacketType.TEXT:
                 strategy = new DirectMessageProcessor();
             case PacketType.CREATE_GROUP:
@@ -38,7 +39,6 @@ public class PacketRouter {
                 // Meme pas de type correct dans le paquet, erreur interne, errorProcessor aussi ?
                 strategy = new ErrorProcessor();
         }
-
         strategy.process(pkt);
-        }
+    }
 }
