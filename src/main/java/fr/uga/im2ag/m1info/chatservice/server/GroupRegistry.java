@@ -10,7 +10,7 @@ public class GroupRegistry {
 
     public int createGroup(String title, int adminId){
         int groupId = idGenerator.generateId();
-        groups.put(groupId, new Group(groupId, title, adminId));
+        groups.put(groupId, new Group(groupId, title, adminId)); // Adds the admin
         
         return groupId;
     }

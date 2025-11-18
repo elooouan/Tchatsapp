@@ -1,7 +1,6 @@
 package fr.uga.im2ag.m1info.chatservice.client;
 
 import fr.uga.im2ag.m1info.chatservice.common.Group;
-import fr.uga.im2ag.m1info.chatservice.common.User;
 
 import java.util.*;
 
