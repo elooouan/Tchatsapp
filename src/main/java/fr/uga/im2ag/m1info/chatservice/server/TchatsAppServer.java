@@ -13,8 +13,9 @@ package fr.uga.im2ag.m1info.chatservice.server;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
+import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
@@ -27,7 +28,7 @@ import java.util.logging.Logger;
 /**
  * A server that
  */
-public class TchatsAppServer {
+public class TchatsAppServer implements PacketSender {
     private final static Logger LOG = Logger.getLogger(TchatsAppServer.class.getName());
 
     /**
@@ -87,7 +88,7 @@ public class TchatsAppServer {
      */
     private final Selector selector;
     private volatile boolean started;
-
+    private ServerState serverState;
 
 
     /**
@@ -163,6 +164,7 @@ public class TchatsAppServer {
      * Stops th server
      */
     public void stop() {
+        saveData();
         started=false;
         selector.wakeup();
     }
@@ -375,11 +377,59 @@ public class TchatsAppServer {
         }
     }
 
+    private void loadData(){
+        File stateFile = new File("state.ser");
+        if(!stateFile.exists()){
+            serverState = new ServerState();
+            return;
+        }
+
+        try {
+            ObjectInputStream ois;
+
+            FileInputStream dataFile = new FileInputStream("state.ser");
+            ois = new ObjectInputStream(dataFile);
+            serverState = (ServerState) ois.readObject();
+            ois.close();
+            dataFile.close();
+
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private void saveData(){
+        try{
+            ObjectOutputStream oos;
+
+            FileOutputStream dataFile = new FileOutputStream("state.ser");
+            oos = new ObjectOutputStream(dataFile);
+            oos.writeObject(serverState);
+            oos.close();
+            dataFile.close();
+
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private ServerState getServerState(){
+        return serverState;
+    }
+
 
     public static void main(String[] args) throws Exception {
         int port = 1666;
         int workers = Math.max(2, Runtime.getRuntime().availableProcessors());
         TchatsAppServer s =  new TchatsAppServer(port, workers);
+        s.loadData();
+
+        //AdminProcessor adminProcessor = new AdminProcessor(s);
+
+
+        s.saveData();
 
         s.start(); // methode bloquante
     }

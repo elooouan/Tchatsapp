@@ -1,10 +1,6 @@
 package fr.uga.im2ag.m1info.chatservice.server;
 
-import fr.uga.im2ag.m1info.chatservice.common.Group;
-import fr.uga.im2ag.m1info.chatservice.common.Packet;
-import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
-import fr.uga.im2ag.m1info.chatservice.common.PacketTypes;
-import fr.uga.im2ag.m1info.chatservice.common.User;
+import fr.uga.im2ag.m1info.chatservice.common.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -13,13 +9,13 @@ import java.nio.charset.StandardCharsets;
  * Handles commands of type "admin" (destId == 0)
  */
 public class AdminProcessor implements PacketProcessor {
-    private TchatsAppServer server;
+    private PacketSender server;
     private UserRegistry users;
     private GroupRegistry groups;
     private ContactRegistry contacts;
     private IdGenerator idGenerator;
 
-    public AdminProcessor(TchatsAppServer server,
+    public AdminProcessor(PacketSender server,
                           UserRegistry users,
                           GroupRegistry groups,
                           ContactRegistry contacts) {
