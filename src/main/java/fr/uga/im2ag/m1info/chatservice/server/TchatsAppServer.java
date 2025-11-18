@@ -415,7 +415,7 @@ public class TchatsAppServer implements PacketSender {
 
     }
 
-    private ServerState getServerState(){
+    public ServerState getServerState(){
         return serverState;
     }
 
