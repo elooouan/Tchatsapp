@@ -13,7 +13,6 @@ public class AdminProcessor implements PacketProcessor {
     private UserRegistry users;
     private GroupRegistry groups;
     private ContactRegistry contacts;
-    private IdGenerator idGenerator;
 
     public AdminProcessor(PacketSender server,
                           UserRegistry users,
@@ -43,6 +42,26 @@ public class AdminProcessor implements PacketProcessor {
             case PacketTypes.CREATE_GROUP:
                 handleCreateGroup(pkt.from(), payload);
                 break;
+            case PacketTypes.ADD_MEMBER:
+                handleAddMember(pkt.from(), payload);
+                break;
+            case PacketTypes.REMOVE_MEMBER:
+                handleRemoveMember(pkt.from(), payload);
+                break;
+            case PacketTypes.RENAME_GROUP:
+                handleRenameGroup(pkt.from(), payload);
+                break;
+            case PacketTypes.DELETE_GROUP:
+                handleDeleteGroup(pkt.from(), payload);
+                break;
+            case PacketTypes.SET_PSEUDO:
+                handleSetPseudo(pkt.from(), payload);
+                break;
+            case PacketTypes.ADD_CONTACT:
+                handleAddContact(pkt.from(), payload);
+                break;
+            default:
+                sendError(pkt.from(), "unknown admin packet type: " + type);
         }
     }
 
@@ -76,6 +95,150 @@ public class AdminProcessor implements PacketProcessor {
         sendOk(callerId, "GROUP_CREATED with groupId: " + groupId);
     }
     
+    /*
+     * ADD_MEMBER payload:
+     *   [type:int][groupId:int][memberId:int]
+     */
+    private void handleAddMember(int callerId, ByteBuffer payload) {
+        if (payload.remaining() < 2 * Integer.BYTES) {
+            sendError(callerId, "Invalid ADD_MEMBER payload");
+            return;
+        }
+
+        int groupId = payload.getInt();
+        int memberId = payload.getInt();
+
+        if (!groups.exists(groupId)) {
+            sendError(groupId, "Unknown groupId: " + groupId);
+            return;
+        }
+
+        if (!users.exists(memberId)) {
+            sendError(memberId, "Unknown memberId: " + memberId);
+            return;
+        }
+
+        groups.addMember(groupId, memberId);
+        sendOk(callerId, "memberId " + memberId + " added to groupId " + groupId);
+    }
+
+    /*
+     * REMOVE_MEMBER payload:
+     *   [type:int][groupId:int][memberId:int]
+     */
+    private void handleRemoveMember(int callerId, ByteBuffer payload) {
+        if (payload.remaining() < 2 * Integer.BYTES) {
+            sendError(callerId, "Invalid REMOVE_MEMBER payload");
+            return;
+        }
+
+        int groupId = payload.getInt();
+        int memberId = payload.getInt();
+
+        if (!groups.exists(groupId)) {
+            sendError(callerId, "unknown group " + groupId);
+            return;
+        }
+
+        groups.removeMember(groupId, memberId);
+        sendOk(memberId, "memberId " + memberId + " removed from groupId " + groupId);
+    }
+
+    /*
+     * RENAME_GROUP payload:
+     *   [type:int][groupId:int][titleLen:int][title:bytes]
+     */
+    private void handleRenameGroup(int callerId, ByteBuffer payload) {
+        // We only need to check for a single byte -> groupeId, because the rest is handled by readString
+        if (payload.remaining() < Integer.BYTES) {
+            sendError(callerId, "Invalid RENAME_GROUP payload.");
+            return;
+        }
+
+        int groupeId = payload.getInt();
+        if (!groups.exists(groupeId)) {
+            sendError(groupeId, "Unknown groupeId " + groupeId);
+            return;
+        }
+
+        String newTitle = readString(payload);
+        if (newTitle == null || newTitle.isEmpty()) {
+            sendError(groupeId, "Group title is either empty or invalid.");
+            return;
+        }
+
+        groups.rename(groupeId, newTitle);
+        sendOk(callerId, "groupId " + groupeId + " has been renamed to " + newTitle);
+    }
+
+    /*
+     * DELETE_GROUP payload:
+     *   [type:int][groupId:int]
+     */
+    private void handleDeleteGroup(int callerId, ByteBuffer payload) {
+        if (payload.remaining() < Integer.BYTES) {
+            sendError(callerId, "Invalid DELETE_GROUP payload.");
+            return;
+        }
+
+        int groupeId = payload.getInt();
+        if (!groups.exists(groupeId)) {
+            sendError(groupeId, "Unknown groupId " + groupeId);
+            return;
+        }
+
+        groups.delete(groupeId);
+        sendOk(groupeId, "Delete groupId " + groupeId);
+    }
+
+    /*
+     * SET_PSEUDO payload:
+     *   [type:int][pseudoLen:int][pseudo:bytes]
+     * The user whose pseudo is changed is callerId (pkt.from()).
+     */
+    private void handleSetPseudo(int callerId, ByteBuffer payload) {
+        String newPseudo = readString(payload);
+        if (newPseudo == null || newPseudo.isEmpty()) {
+            sendError(callerId, "Invalid SET_PSEUDO payload.");
+            return;
+        }
+
+        // Safety net -> we still check it regardless just in case
+        if (!users.exists(callerId)) {
+            sendError(callerId, "Unknown callerid " + callerId);
+            return;
+        }
+
+        users.setPseudo(callerId, newPseudo);
+        sendOk(callerId, "New pseudo set: " + newPseudo);
+    }
+
+    /*
+     * ADD_CONTACT payload:
+     *   [type:int][contactId:int]
+     * The owner of the contact list is callerId.
+     */
+    private void handleAddContact(int callerId, ByteBuffer payload) {
+        if (payload.remaining() < Integer.BYTES) {
+            sendError(callerId, "Invalid ADD_CONTACT payload.");
+            return;
+        }
+
+        int contactId = payload.getInt();
+        if (!users.exists(callerId) || !users.exists(contactId)) {
+            sendError(callerId, "Uknown ID.");
+            return;
+        }
+
+        // Because contacts uses User not userId
+        User caller = users.getUser(callerId);
+        User newContact = users.getUser(callerId);
+
+        contacts.addContact(caller, newContact);
+        sendOk(contactId, "New contactId " + contactId + " added to userId " + callerId +  "'s contacts list");
+    }
+
+
     // ====================================================================
     // Helpers
     // ====================================================================
