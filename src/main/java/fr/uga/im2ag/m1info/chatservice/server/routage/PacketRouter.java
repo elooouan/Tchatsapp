@@ -65,7 +65,7 @@ public class PacketRouter {
      */
 
     public PacketProcessor resolve(Packet p) {
-        int type = PacketType.ERROR;
+        int type = p.type();
         return strategies.getOrDefault(type, new ErrorProcessor(context));
     }
 }
