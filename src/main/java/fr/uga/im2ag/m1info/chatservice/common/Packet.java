@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
  * It contains a ByteBuffer where the first 4 bytes are the length (in bytes) of the payload (i.e. the content),
  * then 4 bytes for the sender id, 4 bytes for the recipient id and then the payload.
  */
-public class Packet {
+public class Packet implements Serializable {
 
     // private static final int OFFSET_LENGTH = 0;
     private static final int OFFSET_FROM   = Integer.BYTES;
@@ -130,7 +130,6 @@ public class Packet {
         return buffer.getInt(OFFSET_TYPE);
     }
 
-
     public int payloadSize() {
         return buffer.getInt(0);
     }
@@ -170,44 +169,44 @@ public class Packet {
         return new PacketBuilder(payload.length,from,to,PacketType.TEXT_GROUP).setPayload(payload).build();
     }
 
-    public static Packet createGroupCreationPacket(int from, int to, String content) {
+    public static Packet createGroupCreationPacket(int from, String content) {
         byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.CREATE_GROUP).setPayload(payload).build();
+        return new PacketBuilder(payload.length,from,0,PacketType.CREATE_GROUP).setPayload(payload).build();
     }
 
-    public static Packet createAddMemberPacket(int from, int to, String content) {
+    public static Packet createAddMemberPacket(int from, String content) {
         byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.ADD_MEMBER).setPayload(payload).build();
+        return new PacketBuilder(payload.length,from,0,PacketType.ADD_MEMBER).setPayload(payload).build();
     }
 
-    public static Packet createRemoveMemberPacket(int from, int to, String content) {
+    public static Packet createRemoveMemberPacket(int from, String content) {
         byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.REMOVE_MEMBER).setPayload(payload).build();
+        return new PacketBuilder(payload.length,from,0,PacketType.REMOVE_MEMBER).setPayload(payload).build();
     }
 
-    public static Packet createRenameGroupPacket(int from, int to, String content) {
+    public static Packet createRenameGroupPacket(int from, String content) {
         byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.RENAME_GROUP).setPayload(payload).build();
+        return new PacketBuilder(payload.length,from,0,PacketType.RENAME_GROUP).setPayload(payload).build();
     }
 
-    public static Packet createDeleteGroupPacket(int from, int to, String content) {
+    public static Packet createDeleteGroupPacket(int from, String content) {
         byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.DELETE_GROUP).setPayload(payload).build();
+        return new PacketBuilder(payload.length,from,0,PacketType.DELETE_GROUP).setPayload(payload).build();
     }
 
-    public static Packet createSetPseudoPacket(int from, int to, String content) {
+    public static Packet createSetPseudoPacket(int from, String content) {
         byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.SET_PSEUDO).setPayload(payload).build();
+        return new PacketBuilder(payload.length,from,0,PacketType.SET_PSEUDO).setPayload(payload).build();
     }
 
-    public static Packet createAddContactPacket(int from, int to, String content) {
+    public static Packet createAddContactPacket(int from, String content) {
         byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.ADD_CONTACT).setPayload(payload).build();
+        return new PacketBuilder(payload.length,from,0,PacketType.ADD_CONTACT).setPayload(payload).build();
     }
 
-    public static Packet createNewUserPacket(int from, int to, String content) {
+    public static Packet createNewUserPacket(int from, String content) {
         byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.CREATE_USER).setPayload(payload).build();
+        return new PacketBuilder(payload.length,from,0,PacketType.CREATE_USER).setPayload(payload).build();
     }
 
     public static Packet createErrorPacket(int from, int to, String content) {
