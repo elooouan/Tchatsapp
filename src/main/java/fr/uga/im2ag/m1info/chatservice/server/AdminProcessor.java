@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 /*
- * Handles commands of type "admin" (destId == 0)
+ * Handles commands of type "admin" (to == 0)
  */
 public class AdminProcessor implements PacketProcessor {
     private PacketSender server;
@@ -61,7 +61,7 @@ public class AdminProcessor implements PacketProcessor {
                 handleAddContact(pkt.from(), payload);
                 break;
             default:
-                sendError(pkt.from(), "unknown admin packet type: " + type);
+                sendError(pkt.from(), "Unknown admin packet type: " + type);
         }
     }
 
@@ -240,7 +240,7 @@ public class AdminProcessor implements PacketProcessor {
 
 
     // ====================================================================
-    // Helpers
+    // Helpers (same as DirectMessageProcessor and GroupMessageProcessor)
     // ====================================================================
 
     // Helper to read bytes from the payload and convert them into a String
