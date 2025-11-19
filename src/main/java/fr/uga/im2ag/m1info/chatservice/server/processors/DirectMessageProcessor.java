@@ -4,14 +4,15 @@ import java.nio.ByteBuffer;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
+import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
 import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
 
 public class DirectMessageProcessor implements PacketProcessor {
-    private int sender;
+    PacketSender sender;
     private UserRegistry users;
 
-    public DirectMessageProcessor(int sender, ServerState serv) {
+    public DirectMessageProcessor(PacketSender sender, ServerState serv) {
         this.sender = sender;
         this.users = serv.getUserRegistry();
     }
@@ -51,11 +52,11 @@ public class DirectMessageProcessor implements PacketProcessor {
 
     private void sendOk(int to, String msg) {
         Packet p = Packet.createTextMessage(0, to, "OK " + msg);
-        //sender.sendPacket(p);
+        sender.sendPacket(p);
     }
 
     private void sendError(int to, String msg) {
         Packet p = Packet.createTextMessage(0, to, "ERROR " + msg);
-        //sender.sendPacket(p);
+        sender.sendPacket(p);
     }
 }

@@ -7,6 +7,6 @@ public class ErrorProcessor implements PacketProcessor {
 
     @Override
     public void process(Packet msg) {
-
+        System.out.println("[Erreur interne] : Un packet n'a pas pu être interpeté. Destinataire : " + msg.to() + " Sender : " + msg.from());
     }
 }

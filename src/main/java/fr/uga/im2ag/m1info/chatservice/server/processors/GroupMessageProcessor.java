@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 
 import fr.uga.im2ag.m1info.chatservice.common.Group;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
+import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
 import fr.uga.im2ag.m1info.chatservice.server.GroupRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
@@ -15,11 +16,11 @@ import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
  * Handles group text messages.
  */
 public class GroupMessageProcessor implements PacketProcessor {
-    private int sender;
+    private PacketSender sender;
     private UserRegistry users;
     private GroupRegistry groups;
 
-    public GroupMessageProcessor(int sender, ServerState serverState) {
+    public GroupMessageProcessor(PacketSender sender, ServerState serverState) {
         this.sender = sender;
         this.users = serverState.getUserRegistry();
         this.groups = serverState.getGroupRegistry();
@@ -68,7 +69,7 @@ public class GroupMessageProcessor implements PacketProcessor {
             pb.setPayload(payloadBytes);
 
             Packet out = pb.build();
-            //sender.sendPacket(out);
+            sender.sendPacket(out);
         }
 
         // Comment/Uncomment this ACK - use this for debugging (on the sender side)
@@ -82,11 +83,11 @@ public class GroupMessageProcessor implements PacketProcessor {
 
     private void sendOk(int to, String msg) {
         Packet p = Packet.createTextMessage(0, to, "OK " + msg);
-        //sender.sendPacket(p);
+        sender.sendPacket(p);
     }
 
     private void sendError(int to, String msg) {
         Packet p = Packet.createTextMessage(0, to, "ERROR " + msg);
-        //sender.sendPacket(p);
+        sender.sendPacket(p);
     }
 }
