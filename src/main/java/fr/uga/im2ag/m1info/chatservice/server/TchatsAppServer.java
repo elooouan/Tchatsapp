@@ -284,7 +284,7 @@ public class TchatsAppServer implements PacketSender {
                         // send an empty packet to indicate successful identification
                         // and by the way send the id to new client (in the to field)
                        // use directly write because it has to be send before any element from the queue
-                        sc.write(Packet.createEmptyPacket(0,clientId).asByteBuffer());
+                        //sc.write(Packet.createEmptyPacket(0,clientId).asByteBuffer());
 
                         // enventually send messages in the queue
                         wakeupSendQueue(state.channel);
