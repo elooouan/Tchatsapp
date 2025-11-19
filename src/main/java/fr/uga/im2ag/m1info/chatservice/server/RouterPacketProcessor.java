@@ -17,7 +17,7 @@ public class RouterPacketProcessor implements PacketProcessor {
     private PacketProcessor textDirectHandler;
     private PacketProcessor textGroupHandler; // We can have an "infinite" amount of groups so we don't add them to the virtualProcessors Map
 
-    private RouterPacketProcessor(UserRegistry users, GroupRegistry groups) {
+    public RouterPacketProcessor(UserRegistry users, GroupRegistry groups) {
         this.users = users;
         this.groups = groups;
     }
