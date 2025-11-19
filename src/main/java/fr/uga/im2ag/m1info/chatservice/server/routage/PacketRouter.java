@@ -22,16 +22,23 @@ public class PacketRouter {
         this.context = context;
         strategies = new HashMap<>();
 
-        strategies.put(PacketType.TEXT_USER, new DirectMessageProcessor(context));
-        strategies.put(PacketType.TEXT_GROUP, new GroupMessageProcessor(context));
-        strategies.put(PacketType.CREATE_GROUP, new AdminProcessor(context));
-        strategies.put(PacketType.ADD_MEMBER, new AdminProcessor(context));
-        strategies.put(PacketType.REMOVE_MEMBER, new AdminProcessor(context));
-        strategies.put(PacketType.RENAME_GROUP, new AdminProcessor(context));
-        strategies.put(PacketType.DELETE_GROUP, new AdminProcessor(context));
-        strategies.put(PacketType.SET_PSEUDO, new UserProcessor(context));
-        strategies.put(PacketType.ADD_CONTACT, new UserProcessor(context));
-        strategies.put(PacketType.ERROR, new ErrorProcessor(context)); // Simple reply (ex: sendError...)
+        AdminProcessor admin = new AdminProcessor(context);
+        UserProcessor user = new UserProcessor(context);
+        ErrorProcessor error = new ErrorProcessor(context);
+
+        strategies.put(PacketType.TEXT_USER,   new DirectMessageProcessor(context));
+        strategies.put(PacketType.TEXT_GROUP,  new GroupMessageProcessor(context));
+
+        strategies.put(PacketType.CREATE_GROUP, admin);
+        strategies.put(PacketType.ADD_MEMBER,   admin);
+        strategies.put(PacketType.REMOVE_MEMBER,admin);
+        strategies.put(PacketType.RENAME_GROUP, admin);
+        strategies.put(PacketType.DELETE_GROUP, admin);
+
+        strategies.put(PacketType.SET_PSEUDO,  user);
+        strategies.put(PacketType.ADD_CONTACT, user);
+
+        strategies.put(PacketType.ERROR,       error);
     }
 
     /*
