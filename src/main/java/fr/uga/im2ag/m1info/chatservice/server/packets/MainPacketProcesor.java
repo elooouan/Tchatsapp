@@ -6,13 +6,13 @@ import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 
 import java.nio.ByteBuffer;
 
-public class PacketRouter {
+public class MainPacketProcesor {
     /* Classe implémentant le pattern builder Strategy et selon le type de paquet utilise le bon processor pour le traiter */
 
     /* Singleton ? */
     ServerState serverState;
 
-    public PacketRouter(ServerState serverState) {
+    public MainPacketProcesor(ServerState serverState) {
         this.serverState = serverState;
     }
 
