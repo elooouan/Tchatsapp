@@ -1,7 +1,11 @@
 package fr.uga.im2ag.m1info.chatservice.server.routage;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
-import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
+// import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
+
 import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.TchatsAppServer;
 
@@ -21,6 +25,18 @@ public class StrategyContext {
             server.sendPacket(p);
         }
 
+    public String readString(ByteBuffer buf) {
+    if (buf.remaining() < Integer.BYTES) return null;
+
+    int len = buf.getInt();
+    if (len < 0 || buf.remaining() < len) return null;
+
+    byte[] data = new byte[len];
+    buf.get(data);
+
+    return new String(data, StandardCharsets.UTF_8);
+}
+
 
     public void sendOk(int cible, String message) {
         //Packet ack = Packet.createAck(msg.to(), msg.from(), message);
@@ -38,5 +54,5 @@ public class StrategyContext {
 
         public ServerState serverState() {
             return server.getServerState();
-        }
+    }
 }
