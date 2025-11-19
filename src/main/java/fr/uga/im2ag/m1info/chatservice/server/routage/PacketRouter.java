@@ -1,11 +1,8 @@
 package fr.uga.im2ag.m1info.chatservice.server.routage;
 
-import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
-import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
-import fr.uga.im2ag.m1info.chatservice.common.PacketType;
+import fr.uga.im2ag.m1info.chatservice.common.*;
 import fr.uga.im2ag.m1info.chatservice.server.ServerState;
-import fr.uga.im2ag.m1info.chatservice.common.Packet;
-import fr.uga.im2ag.m1info.chatservice.server.routage.processors.ErrorProcessor;
+import fr.uga.im2ag.m1info.chatservice.server.routage.processors.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,15 +14,24 @@ import java.util.Map;
 public class PacketRouter {
     private PacketSender sender;
     private ServerState serverState;
-    private final Map<PacketType, PacketProcessor> strategies;
+    private final Map<Integer, PacketProcessor> strategies;
 
+    StrategyContext context;
     // Envoie les paquets au bon processor
-    private PacketRouter(PacketSender sender, ServerState state) {
-        this.sender = sender;
-        this.serverState = state;
+    public PacketRouter(StrategyContext context) {
+        this.context = context;
         strategies = new HashMap<>();
 
-        //strategies.put(PacketType) TODO
+        strategies.put(PacketType.TEXT_USER, new DirectMessageProcessor(context));
+        strategies.put(PacketType.TEXT_GROUP, new GroupMessageProcessor(context));
+        strategies.put(PacketType.CREATE_GROUP, new AdminProcessor(context));
+        strategies.put(PacketType.ADD_MEMBER, new AdminProcessor(context));
+        strategies.put(PacketType.REMOVE_MEMBER, new AdminProcessor(context));
+        strategies.put(PacketType.RENAME_GROUP, new AdminProcessor(context));
+        strategies.put(PacketType.DELETE_GROUP, new AdminProcessor(context));
+        strategies.put(PacketType.SET_PSEUDO, new UserProcessor(context));
+        strategies.put(PacketType.ADD_CONTACT, new UserProcessor(context));
+        strategies.put(PacketType.ERROR, new ErrorProcessor(context)); // Simple reply (ex: sendError...)
     }
 
     /*
@@ -58,8 +64,8 @@ public class PacketRouter {
     }
      */
 
-    public PacketProcessor resolve(Packet p, StrategyContext context) {
-        //PacketType type = ...
-        return strategies.getOrDefault(0, new ErrorProcessor(context));
+    public PacketProcessor resolve(Packet p) {
+        int type = PacketType.ERROR;
+        return strategies.getOrDefault(type, new ErrorProcessor(context));
     }
 }

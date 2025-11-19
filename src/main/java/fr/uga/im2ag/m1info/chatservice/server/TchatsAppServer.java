@@ -66,11 +66,6 @@ public class TchatsAppServer implements PacketSender {
     private final Map<Integer, Queue<ByteBuffer>> clientQueues = new ConcurrentHashMap<>();
 
     /**
-     * The processor responsible for processing received packets
-     */
-    private PacketRouter packetRouter;
-
-    /**
      * Generator used for new client ids
      */
     private IdGenerator idGenerator;
@@ -169,15 +164,6 @@ public class TchatsAppServer implements PacketSender {
         saveData();
         started=false;
         selector.wakeup();
-    }
-
-    /**
-     * Set the packet processor to be used to handle requests from clients
-     * @param pp
-     */
-    public void setPacketProcessor(PacketRouter pp) {
-        if (pp==null) throw new NullPointerException("Packet Processor cannot be null");
-        packetRouter=pp;
     }
 
     public void setClientIdGenerator(IdGenerator gen) {
@@ -327,7 +313,9 @@ public class TchatsAppServer implements PacketSender {
                             Packet msg = state.currentPacket.build();
                             state.currentPacket=null;
                             workers.submit(() -> {
-                                PacketProcessor s = packetRouter.resolve(msg, context); // choix de la stratégie
+                                StrategyContext context = new StrategyContext(this, msg);
+                                PacketRouter router = new PacketRouter(context);
+                                PacketProcessor s = router.resolve(msg); // choix de la stratégie
                                 s.process(msg);
                             });
                             LOG.info("packet read from client " + state.clientId);
