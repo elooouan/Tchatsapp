@@ -160,59 +160,8 @@ public class Packet {
         return new Packet(buf);
     }
 
-    public static Packet createDirectTextMessagePacket(int from, int to, String content) {
+    public static Packet createPacket(int from, int to, String content, PacketType type) { 
         byte[] payload = content.getBytes();
-        return  new PacketBuilder(payload.length,from,to,PacketType.TEXT_USER).setPayload(payload).build();
+        return  new PacketBuilder(payload.length, from, to, type.ordinal()).setPayload(payload).build();
     }
-
-    public static Packet createGroupTextMessagePacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.TEXT_GROUP).setPayload(payload).build();
-    }
-
-    public static Packet createGroupCreationPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.CREATE_GROUP).setPayload(payload).build();
-    }
-
-    public static Packet createAddMemberPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.ADD_MEMBER).setPayload(payload).build();
-    }
-
-    public static Packet createRemoveMemberPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.REMOVE_MEMBER).setPayload(payload).build();
-    }
-
-    public static Packet createRenameGroupPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.RENAME_GROUP).setPayload(payload).build();
-    }
-
-    public static Packet createDeleteGroupPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.DELETE_GROUP).setPayload(payload).build();
-    }
-
-    public static Packet createSetPseudoPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.SET_PSEUDO).setPayload(payload).build();
-    }
-
-    public static Packet createAddContactPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.ADD_CONTACT).setPayload(payload).build();
-    }
-
-    public static Packet createNewUserPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.CREATE_USER).setPayload(payload).build();
-    }
-
-    public static Packet createErrorPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.ERROR).setPayload(payload).build();
-    }
-
 }

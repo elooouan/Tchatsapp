@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class UserRegistry implements Serializable {
-    private Map<Integer,User> users = new HashMap<>();
-    private IdGenerator idGenerator;
+    private Map<Integer,User> users = new HashMap<>();  //holds the corresponding Ids to Users
+    private IdGenerator idGenerator;                    
 
     private UserRegistry(){}
 
