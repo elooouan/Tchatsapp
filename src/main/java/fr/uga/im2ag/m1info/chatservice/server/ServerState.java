@@ -13,17 +13,16 @@ public class ServerState implements Serializable {
 
         @Override
         public synchronized int generateId() {
-            int value = id;
-            id++;
-            return value;
+            return id++;
         }
     }
 
     public ServerState(){
-         userRegistry = new UserRegistry();
-         groupRegistry = new GroupRegistry();
+        idGenerator = new IdIntGenerator();
+        userRegistry = new UserRegistry(idGenerator);
+         groupRegistry = new GroupRegistry(idGenerator);
          contactRegistry = new ContactRegistry();
-         idGenerator = new IdIntGenerator();
+
     }
 
     public ContactRegistry getContactRegistry() {

@@ -8,6 +8,13 @@ import java.util.Map;
 
 public class UserRegistry implements Serializable {
     private Map<Integer,User> users = new HashMap<>();
+    private IdGenerator idGenerator;
+
+    private UserRegistry(){}
+
+    public UserRegistry(IdGenerator idGenerator) {
+        this.idGenerator = idGenerator;
+    }
 
     public boolean exists(int userId) {
         return users.containsKey(userId);
@@ -15,7 +22,7 @@ public class UserRegistry implements Serializable {
     
     /* Called AFTER the server generates a userId with IdGenerator -> AdmindProcessor calls UserRegistry not the other way around */
     public void createUser(int userId) {
-        users.put(userId, new User(userId, null));
+        users.put(idGenerator.generateId(), new User(userId, null));
     }
 
     public User getUser(int userId) {
