@@ -325,7 +325,7 @@ public class TchatsAppServer implements PacketSender {
                         if (state.currentPacket.fillFrom(buf).isCompleted()) {
                             Packet msg = state.currentPacket.build();
                             state.currentPacket=null;
-                            workers.submit(() -> packetProcessor.process(msg));
+                            workers.submit(() -> packetProcessor.route(msg));
                             LOG.info("packet read from client " + state.clientId);
                         }
                     }
