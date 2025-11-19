@@ -428,29 +428,11 @@ public class TchatsAppServer implements PacketSender {
         TchatsAppServer s =  new TchatsAppServer(port, workers);
         
         // Load persistent state (if any)
-        s.loadData();
+         s.loadData();
         // ServerState state = s.getServerState();
         
         // For now we ignore state -> registries wiring and just create fresh registries.
         // We can later plug ServerState into the registries if required.
-
-        // Create registries (server-side "database") -> as of right now we don't save them on the disk
-        UserRegistry users = new UserRegistry();
-        GroupRegistry groups = new GroupRegistry();
-        ContactRegistry contacts = new ContactRegistry();
-
-        // Create router + processors
-        RouterPacketProcessor router = new RouterPacketProcessor(users, groups);
-
-        AdminProcessor admin = new AdminProcessor(s, users, groups, contacts);
-        router.register(0, admin); // register ONLY if destId(to()) == 0 -> As of right now the only virtual processor is AdminProcessor (cf. AdminProcessor)
-
-        DirectMessageProcessor dmp = new DirectMessageProcessor(s, users);
-        GroupMessageProcessor gmp = new GroupMessageProcessor(s, users, groups);
-        router.setTextHandlers(dmp, gmp);
-
-        // Tell the server to use the router for all incoming packets
-        s.setPacketProcessor(router);
 
         // Save initial state (NEED TO IMPLEMENT)
         s.saveData();
