@@ -12,7 +12,6 @@
 package fr.uga.im2ag.m1info.chatservice.client;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
-import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -28,7 +27,7 @@ public class Client {
 
     private int clientId;
     private Socket cnx;
-    private PacketProcessor processor;
+    private fr.uga.im2ag.m1info.chatservice.common.PacketProcessor processor;
 
     public Client() {
         this(0);
@@ -82,7 +81,7 @@ public class Client {
      * Set the packet processor to be called when packet are received by the client
      * @param p
      */
-    public void setPacketProcessor(PacketProcessor p ) {
+    public void setPacketProcessor(fr.uga.im2ag.m1info.chatservice.common.PacketProcessor p ) {
         processor=p;
     }
 

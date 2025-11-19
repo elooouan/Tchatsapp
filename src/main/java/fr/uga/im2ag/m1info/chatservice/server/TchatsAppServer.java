@@ -14,6 +14,9 @@ package fr.uga.im2ag.m1info.chatservice.server;
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
+import fr.uga.im2ag.m1info.chatservice.server.routage.PacketRouter;
+import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
+import fr.uga.im2ag.m1info.chatservice.server.routage.processors.ErrorProcessor;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -64,11 +67,6 @@ public class TchatsAppServer implements PacketSender {
     private final Map<Integer, Queue<ByteBuffer>> clientQueues = new ConcurrentHashMap<>();
 
     /**
-     * The processor responsible for processing received packets
-     */
-    private PacketProcessor packetProcessor;
-
-    /**
      * Generator used for new client ids
      */
     private IdGenerator idGenerator;
@@ -117,7 +115,7 @@ public class TchatsAppServer implements PacketSender {
     /**
      * Initializes a new server with a default packet processor that forwards packet to the
      * recipient. This default behavior can be changed by supplying a customized PacketProcessor to
-     * the method {@link #setPacketProcessor setPacketProcessor }
+     * the method setPacketProcessor }
      * @param port the port on which the server is listening
      * @param workerThreads the number of threads used to process packets
      * @throws IOException
@@ -130,7 +128,7 @@ public class TchatsAppServer implements PacketSender {
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
         this.workers = Executors.newFixedThreadPool(workerThreads);
         setClientIdGenerator(new AtomicInteger(1)::getAndIncrement); // by default, clients id are generated using a sequence (use atomic integer for concurrency)
-        setPacketProcessor(this::sendPacket); // by default, forward the message to the recipient (works only for client to client, but not for groups)
+        //setPacketProcessor(this::sendPacket); // by default, forward the message to the recipient (works only for client to client, but not for groups)
         LOG.info("Server started on port " + port + " with " + workerThreads + " workers");
 
     }
@@ -167,15 +165,6 @@ public class TchatsAppServer implements PacketSender {
         saveData();
         started=false;
         selector.wakeup();
-    }
-
-    /**
-     * Set the packet processor to be used to handle requests from clients
-     * @param pp
-     */
-    public void setPacketProcessor(PacketProcessor pp) {
-        if (pp==null) throw new NullPointerException("Packet Processor cannot be null");
-        packetProcessor=pp;
     }
 
     public void setClientIdGenerator(IdGenerator gen) {
@@ -324,7 +313,18 @@ public class TchatsAppServer implements PacketSender {
                         if (state.currentPacket.fillFrom(buf).isCompleted()) {
                             Packet msg = state.currentPacket.build();
                             state.currentPacket=null;
-                            workers.submit(() -> packetProcessor.process(msg));
+                            workers.submit(() -> {
+                                StrategyContext context = new StrategyContext(this, msg);
+                                PacketRouter router = new PacketRouter(context);
+                                PacketProcessor s;
+                                try {
+                                    s = router.resolve(msg); // choix de la stratégie
+                                } catch (RuntimeException err) {
+                                    s = new ErrorProcessor(context); // si une erreur trouvée, erreur
+                                    ((ErrorProcessor) s).setError(err.getMessage());
+                                }
+                                s.process(msg);
+                            });
                             LOG.info("packet read from client " + state.clientId);
                         }
                     }
@@ -428,29 +428,11 @@ public class TchatsAppServer implements PacketSender {
         TchatsAppServer s =  new TchatsAppServer(port, workers);
         
         // Load persistent state (if any)
-        s.loadData();
+         s.loadData();
         // ServerState state = s.getServerState();
         
         // For now we ignore state -> registries wiring and just create fresh registries.
         // We can later plug ServerState into the registries if required.
-
-        // Create registries (server-side "database") -> as of right now we don't save them on the disk
-        UserRegistry users = new UserRegistry();
-        GroupRegistry groups = new GroupRegistry();
-        ContactRegistry contacts = new ContactRegistry();
-
-        // Create router + processors
-        RouterPacketProcessor router = new RouterPacketProcessor(users, groups);
-
-        AdminProcessor admin = new AdminProcessor(s, users, groups, contacts);
-        router.register(0, admin); // register ONLY if destId(to()) == 0 -> As of right now the only virtual processor is AdminProcessor (cf. AdminProcessor)
-
-        DirectMessageProcessor dmp = new DirectMessageProcessor(s, users);
-        GroupMessageProcessor gmp = new GroupMessageProcessor(s, users, groups);
-        router.setTextHandlers(dmp, gmp);
-
-        // Tell the server to use the router for all incoming packets
-        s.setPacketProcessor(router);
 
         // Save initial state (NEED TO IMPLEMENT)
         s.saveData();

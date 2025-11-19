@@ -11,6 +11,10 @@
 
 package fr.uga.im2ag.m1info.chatservice.common;
 
+/*
+    Interface commune parce que le client s'en sert aussi, pour implémenter le
+    pattern Strategy sur l'interprétation d'un packet
+ */
 public interface PacketProcessor {
-    public void process(Packet msg);
+    void process(Packet msg) throws RuntimeException;
 }

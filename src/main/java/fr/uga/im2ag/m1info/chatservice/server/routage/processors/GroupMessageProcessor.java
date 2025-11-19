@@ -1,28 +1,30 @@
-package fr.uga.im2ag.m1info.chatservice.server;
+package fr.uga.im2ag.m1info.chatservice.server.routage.processors;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
-import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
-import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
 import fr.uga.im2ag.m1info.chatservice.common.Packet.PacketBuilder;
 
 import java.nio.ByteBuffer;
 
 import fr.uga.im2ag.m1info.chatservice.common.Group;
+import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
+import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
+import fr.uga.im2ag.m1info.chatservice.server.GroupRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.ServerState;
+import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
 /*
  * Handles group text messages.
  */
 public class GroupMessageProcessor implements PacketProcessor {
-    private PacketSender sender;
+    private StrategyContext context;
     private UserRegistry users;
     private GroupRegistry groups;
 
-    public GroupMessageProcessor(PacketSender sender,
-                                 UserRegistry users,
-                                 GroupRegistry groups) {
-        this.sender = sender;
-        this.users = users;
-        this.groups = groups;
+    public GroupMessageProcessor(StrategyContext context) {
+        this.context = context;
+        this.users = context.serverState().getUserRegistry();
+        this.groups = context.serverState().getGroupRegistry();
     }
 
     @Override
@@ -31,27 +33,23 @@ public class GroupMessageProcessor implements PacketProcessor {
         int groupId = pkt.to(); // msg to group
 
         if (!users.exists(from)) {
-            sendError(from, "Unknown sender: " + from);
-            return;
+            throw new IllegalArgumentException("Unknown sender: " + from);
         }
 
         if (!groups.exists(groupId)) {
-            sendError(from, "Unknown group: " + groupId);
-            return;
+            throw new IllegalArgumentException("Unknown group: " + groupId);
         }
         
         Group group = groups.getGroupById(groupId);
 
         // Enforce membership -> we can change this later if the group is public
         if (!group.getMembers().contains(from)) {
-            sendError(from, "User " + from + " is not a member of group " + groupId);
-            return;
+            throw new IllegalArgumentException("User " + from + " is not a member of group " + groupId);
         }
 
         ByteBuffer payload = pkt.getPayload();
         if (payload == null || payload.remaining() == 0) {
-            sendError(from, "Empty group message payload.");
-            return;
+            throw new IllegalArgumentException("Empty group message payload.");
         }
 
         ByteBuffer readOnly = payload.asReadOnlyBuffer(); // Read Only duplicate of the payload to avoid interfering with the original buffer
@@ -68,25 +66,10 @@ public class GroupMessageProcessor implements PacketProcessor {
             pb.setPayload(payloadBytes);
 
             Packet out = pb.build();
-            sender.sendPacket(out);
+            context.send(out);
         }
 
         // Comment/Uncomment this ACK - use this for debugging (on the sender side)
-        sendOk(from, "Message sent to group " + groupId);
-    }
-
-
-    // ====================================================================
-    // Helpers (same as AdminProcessor)
-    // ====================================================================
-
-    private void sendOk(int to, String msg) {
-        Packet p = Packet.createTextMessage(0, to, "OK " + msg);
-        sender.sendPacket(p);
-    }
-
-    private void sendError(int to, String msg) {
-        Packet p = Packet.createTextMessage(0, to, "ERROR " + msg);
-        sender.sendPacket(p);
+        context.sendOk(pkt.from(), "Message sent to group " + groupId);
     }
 }

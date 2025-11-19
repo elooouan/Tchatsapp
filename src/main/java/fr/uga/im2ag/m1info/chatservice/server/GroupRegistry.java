@@ -9,6 +9,13 @@ public class GroupRegistry implements Serializable {
     private Map<Integer, Group> groups = new HashMap<>();
     IdGenerator idGenerator;
 
+
+    private GroupRegistry(){}
+
+    public GroupRegistry(IdGenerator idGenerator) {
+        this.idGenerator = idGenerator;
+    }
+
     public int createGroup(String title, int adminId){
         int groupId = idGenerator.generateId();
         groups.put(groupId, new Group(groupId, title, adminId)); // Adds the admin

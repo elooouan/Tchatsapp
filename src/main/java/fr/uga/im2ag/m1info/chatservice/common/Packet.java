@@ -24,7 +24,8 @@ public class Packet {
     private static final int OFFSET_LENGTH = 0;
     private static final int OFFSET_FROM   = Integer.BYTES;
     private static final int OFFSET_TO     = 2 * Integer.BYTES;
-    private final static int HEADER_SIZE = 3*Integer.BYTES;
+    private static final int OFFSET_TYPE   = Integer.BYTES;
+    private final static int HEADER_SIZE = 4*Integer.BYTES;
 
 
     /**
@@ -46,13 +47,23 @@ public class Packet {
             buf.putInt(to);
         }
 
-       /* public PacketBuilder setFrom(int from) {
+        public PacketBuilder(int dataSize,int from, int to, int type) {
+            this(dataSize,from,to);
+            buf.putInt(type);
+        }
+
+       public PacketBuilder setFrom(int from) {
             buf.putInt(OFFSET_FROM,from);
             return this;
-        }*/
+        }
 
         public PacketBuilder setTo(int to) {
             buf.putInt(OFFSET_TO,to);
+            return this;
+        }
+
+        public PacketBuilder setType(int type) {
+            buf.putInt(OFFSET_TYPE,type);
             return this;
         }
 
@@ -113,6 +124,10 @@ public class Packet {
 
     public int to() {
         return buffer.getInt(OFFSET_TO);
+    }
+
+    public int type() {
+        return buffer.getInt(OFFSET_TYPE);
     }
 
 
