@@ -13,6 +13,7 @@ public class ClientState {
     private Map<Integer, Set<Integer>> groupMembers= new HashMap<>();
 
     ClientState(int id) {
+        this.id = id;
         contacts = new HashMap<>();
         groups = new HashMap<>();
         groupMembers = new HashMap<>();
@@ -40,6 +41,7 @@ public class ClientState {
     }
     public Set<Integer> getGroupMembers(int groupId) {
         Set<Integer> members = groupMembers.get(groupId);
+        if (members == null) return Collections.emptySet(); // to avoid NullPointerException
         return Collections.unmodifiableSet(members);
     }
 

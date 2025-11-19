@@ -20,8 +20,8 @@ public class ServerState implements Serializable {
     public ServerState(){
         idGenerator = new IdIntGenerator();
         userRegistry = new UserRegistry(idGenerator);
-         groupRegistry = new GroupRegistry(idGenerator);
-         contactRegistry = new ContactRegistry();
+        groupRegistry = new GroupRegistry(idGenerator);
+        contactRegistry = new ContactRegistry();
 
     }
 

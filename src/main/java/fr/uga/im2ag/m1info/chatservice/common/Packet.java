@@ -21,11 +21,11 @@ import java.nio.ByteBuffer;
  */
 public class Packet {
 
-    private static final int OFFSET_LENGTH = 0;
+    // private static final int OFFSET_LENGTH = 0;
     private static final int OFFSET_FROM   = Integer.BYTES;
     private static final int OFFSET_TO     = 2 * Integer.BYTES;
-    private static final int OFFSET_TYPE   = Integer.BYTES;
-    private final static int HEADER_SIZE = 4*Integer.BYTES;
+    private static final int OFFSET_TYPE   = 3 * Integer.BYTES;
+    private final static int HEADER_SIZE   = 4 * Integer.BYTES;
 
     /**
      * A builder for packets.
@@ -129,7 +129,6 @@ public class Packet {
         return buffer.getInt(OFFSET_TYPE);
     }
 
-
     public int payloadSize() {
         return buffer.getInt(0);
     }
@@ -159,12 +158,59 @@ public class Packet {
         return new Packet(buf);
     }
 
-    public static Packet createTextMessage(int from, int to, String content) {
+    public static Packet createDirectTextMessagePacket(int from, int to, String content) {
         byte[] payload = content.getBytes();
-        return  new PacketBuilder(payload.length,from,to).setPayload(payload).build();
+        return  new PacketBuilder(payload.length,from,to,PacketType.TEXT_USER).setPayload(payload).build();
     }
 
-    public static Packet createEmptyPacket(int from, int to) {
-        return new PacketBuilder(0,from,to).build();
+    public static Packet createGroupTextMessagePacket(int from, int to, String content) {
+        byte[] payload = content.getBytes();
+        return new PacketBuilder(payload.length,from,to,PacketType.TEXT_GROUP).setPayload(payload).build();
     }
+
+    public static Packet createGroupCreationPacket(int from, String content) {
+        byte[] payload = content.getBytes();
+        return new PacketBuilder(payload.length,from,0,PacketType.CREATE_GROUP).setPayload(payload).build();
+    }
+
+    public static Packet createAddMemberPacket(int from, String content) {
+        byte[] payload = content.getBytes();
+        return new PacketBuilder(payload.length,from,0,PacketType.ADD_MEMBER).setPayload(payload).build();
+    }
+
+    public static Packet createRemoveMemberPacket(int from, String content) {
+        byte[] payload = content.getBytes();
+        return new PacketBuilder(payload.length,from,0,PacketType.REMOVE_MEMBER).setPayload(payload).build();
+    }
+
+    public static Packet createRenameGroupPacket(int from, String content) {
+        byte[] payload = content.getBytes();
+        return new PacketBuilder(payload.length,from,0,PacketType.RENAME_GROUP).setPayload(payload).build();
+    }
+
+    public static Packet createDeleteGroupPacket(int from, String content) {
+        byte[] payload = content.getBytes();
+        return new PacketBuilder(payload.length,from,0,PacketType.DELETE_GROUP).setPayload(payload).build();
+    }
+
+    public static Packet createSetPseudoPacket(int from, String content) {
+        byte[] payload = content.getBytes();
+        return new PacketBuilder(payload.length,from,0,PacketType.SET_PSEUDO).setPayload(payload).build();
+    }
+
+    public static Packet createAddContactPacket(int from, String content) {
+        byte[] payload = content.getBytes();
+        return new PacketBuilder(payload.length,from,0,PacketType.ADD_CONTACT).setPayload(payload).build();
+    }
+
+    public static Packet createNewUserPacket(int from, String content) {
+        byte[] payload = content.getBytes();
+        return new PacketBuilder(payload.length,from,0,PacketType.CREATE_USER).setPayload(payload).build();
+    }
+
+    public static Packet createErrorPacket(int from, int to, String content) {
+        byte[] payload = content.getBytes();
+        return new PacketBuilder(payload.length,from,to,PacketType.ERROR).setPayload(payload).build();
+    }
+
 }

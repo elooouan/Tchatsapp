@@ -12,12 +12,8 @@
 package fr.uga.im2ag.m1info.chatservice.client;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
-import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 
-import javax.swing.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -29,7 +25,8 @@ public class Client {
 
     private int clientId;
     private Socket cnx;
-    private PacketProcessor processor;
+    private fr.uga.im2ag.m1info.chatservice.common.PacketProcessor processor;
+    private static ClientState clientState;
 
     public Client() {
         this(0);
@@ -83,7 +80,7 @@ public class Client {
      * Set the packet processor to be called when packet are received by the client
      * @param p
      */
-    public void setPacketProcessor(PacketProcessor p ) {
+    public void setPacketProcessor(fr.uga.im2ag.m1info.chatservice.common.PacketProcessor p ) {
         processor=p;
     }
 
@@ -119,6 +116,33 @@ public class Client {
         }
     }
 
+    private void loadData(){
+        File stateFile = new File("clientData.ser");
+        if(!stateFile.exists()){
+            // TODO: send packet to server to get a new id
+            //clientState = new ClientState(id);
+            //return;
+        }
+
+        try {
+            ObjectInputStream ois;
+
+            FileInputStream dataFile = new FileInputStream("clientData.ser");
+            ois = new ObjectInputStream(dataFile);
+            clientState = (ClientState) ois.readObject();
+            ois.close();
+            dataFile.close();
+
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public static ClientState getClientState(){
+        return clientState;
+    }
+
     /** A bsic client in command line **/
     public static void main(String[] args) throws IOException, InterruptedException {
         Scanner sc = new Scanner(System.in);
@@ -147,7 +171,7 @@ public class Client {
                 if (to==0) break;
                 System.out.println("Votre message :");
                 String msg = sc.nextLine();
-                c.sendPacket(Packet.createTextMessage(c.getClientId(), to, msg));
+                //c.sendPacket(Packet.createTextMessage(c.getClientId(), to, msg));
             }
             c.disconnect();
             System.exit(0);
