@@ -115,7 +115,7 @@ public class TchatsAppServer implements PacketSender {
     /**
      * Initializes a new server with a default packet processor that forwards packet to the
      * recipient. This default behavior can be changed by supplying a customized PacketProcessor to
-     * the method {@link #setPacketProcessor setPacketProcessor }
+     * the method setPacketProcessor }
      * @param port the port on which the server is listening
      * @param workerThreads the number of threads used to process packets
      * @throws IOException
