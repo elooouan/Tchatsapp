@@ -30,7 +30,6 @@ public class PacketRouter {
         strategies.put(PacketType.RENAME_GROUP, new AdminProcessor(context));
         strategies.put(PacketType.DELETE_GROUP, new AdminProcessor(context));
         strategies.put(PacketType.SET_PSEUDO, new UserProcessor(context));
-        strategies.put(PacketType.ADD_CONTACT, new UserProcessor(context));
         strategies.put(PacketType.ERROR, new ErrorProcessor(context)); // Simple reply (ex: sendError...)
     }
 
@@ -65,7 +64,7 @@ public class PacketRouter {
      */
 
     public PacketProcessor resolve(Packet p) {
-        int type = PacketType.ERROR;
+        int type = p.type();
         return strategies.getOrDefault(type, new ErrorProcessor(context));
     }
 }

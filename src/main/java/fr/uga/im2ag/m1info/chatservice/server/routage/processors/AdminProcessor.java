@@ -38,29 +38,26 @@ public class AdminProcessor implements PacketProcessor {
         // Payload header [first byte of the payload] = PacketType.*
         // [PacketType: int][Rest of the payload...]
         //int type = pkt.getType(); // type propre a venir
-        int type = payload.get(); // En attendant
+        int type = pkt.type();
 
         switch (type) {
             case PacketType.CREATE_GROUP:
-                handleCreateGroup(pkt.from(), payload);
+                handleCreateGroup(pkt);
                 break;
             case PacketType.ADD_MEMBER:
-                handleAddMember(pkt.from(), payload);
+                handleAddMember(pkt);
                 break;
             case PacketType.REMOVE_MEMBER:
-                handleRemoveMember(pkt.from(), payload);
+                handleRemoveMember(pkt);
                 break;
             case PacketType.RENAME_GROUP:
-                handleRenameGroup(pkt.from(), payload);
+                handleRenameGroup(pkt);
                 break;
             case PacketType.DELETE_GROUP:
-                handleDeleteGroup(pkt.from(), payload);
+                handleDeleteGroup(pkt);
                 break;
             case PacketType.SET_PSEUDO:
-                handleSetPseudo(pkt.from(), payload);
-                break;
-            case PacketType.ADD_CONTACT:
-                handleAddContact(pkt.from(), payload);
+                handleSetPseudo(pkt);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown admin packet type: " + type);
@@ -71,41 +68,31 @@ public class AdminProcessor implements PacketProcessor {
     // Handlers
     // ====================================================================
 
-    // At this point [type:int] has already been consumed 
+    private void handleCreateGroup(Packet pkt) {
+        /*
+        String title = readString(pkt.getPayload());
+        int from = pkt.from();
 
-    /*
-     * CREATE_GROUP payload:
-     *   [type:int][titleLen:int][title:bytes]
-     * The creator/admin is implicitly the callerId (pkt.from()).
-     */
-    private void handleCreateGroup(int callerId, ByteBuffer payload) {
-        String title = readString(payload);
         if (title == null || title.isEmpty()) {
-            throw new IllegalArgumentException("invalid CREATE_GROUP payload.");
+            throw new IllegalArgumentException("invalid title.");
         }
 
         // We don't know how this could happen but we still handle this error just in case
-        if (!users.exists(callerId)) {
-            throw new IllegalArgumentException("unknown user " + callerId);
+        if (!users.exists(from)) {
+            throw new IllegalArgumentException("unknown user " + from);
         }
 
         // Create the group
-        int groupId = groups.createGroup(title, callerId);
+        int groupId = groups.createGroup(title, from);
         
-        context.sendOk(callerId, "GROUP_CREATED with groupId: " + groupId);
+        context.sendOk(from, "GROUP_CREATED with groupId: " + groupId);
+         */
     }
-    
-    /*
-     * ADD_MEMBER payload:
-     *   [type:int][groupId:int][memberId:int]
-     */
-    private void handleAddMember(int callerId, ByteBuffer payload) {
-        if (payload.remaining() < 2 * Integer.BYTES) {
-            throw new IllegalArgumentException("Invalid ADD_MEMBER payload");
-        }
 
-        int groupId = payload.getInt();
-        int memberId = payload.getInt();
+    private void handleAddMember(Packet pkt) {
+        /*
+        int groupId = pkt.to();
+        int memberId = pkt.from();
 
         if (!groups.exists(groupId)) {
             throw new IllegalArgumentException("Unknown groupId: " + groupId);
@@ -116,20 +103,14 @@ public class AdminProcessor implements PacketProcessor {
         }
 
         groups.addMember(groupId, memberId);
-        context.sendOk(callerId, "memberId " + memberId + " added to groupId " + groupId);
+        context.sendOk(memberId, "memberId " + memberId + " added to groupId " + groupId);
+         */
     }
 
-    /*
-     * REMOVE_MEMBER payload:
-     *   [type:int][groupId:int][memberId:int]
-     */
-    private void handleRemoveMember(int callerId, ByteBuffer payload) {
-        if (payload.remaining() < 2 * Integer.BYTES) {
-            throw new IllegalArgumentException("Invalid REMOVE_MEMBER payload");
-        }
-
-        int groupId = payload.getInt();
-        int memberId = payload.getInt();
+    private void handleRemoveMember(Packet pkt) {
+        /*
+        int groupId = pkt.to();
+        int memberId = pkt.from();
 
         if (!groups.exists(groupId)) {
             throw new IllegalArgumentException("unknown group " + groupId);
@@ -137,13 +118,11 @@ public class AdminProcessor implements PacketProcessor {
 
         groups.removeMember(groupId, memberId);
         context.sendOk(memberId, "memberId " + memberId + " removed from groupId " + groupId);
+         */
     }
 
-    /*
-     * RENAME_GROUP payload:
-     *   [type:int][groupId:int][titleLen:int][title:bytes]
-     */
-    private void handleRenameGroup(int callerId, ByteBuffer payload) {
+    private void handleRenameGroup(Packet pkt) {
+        /*
         // We only need to check for a single byte -> groupeId, because the rest is handled by readString
         if (payload.remaining() < Integer.BYTES) {
             throw new IllegalArgumentException("Invalid RENAME_GROUP payload.");
@@ -161,13 +140,11 @@ public class AdminProcessor implements PacketProcessor {
 
         groups.rename(groupeId, newTitle);
         context.sendOk(callerId, "groupId " + groupeId + " has been renamed to " + newTitle);
+         */
     }
 
-    /*
-     * DELETE_GROUP payload:
-     *   [type:int][groupId:int]
-     */
-    private void handleDeleteGroup(int callerId, ByteBuffer payload) {
+    private void handleDeleteGroup(Packet pkt) {
+        /*
         if (payload.remaining() < Integer.BYTES) {
             throw new IllegalArgumentException("Invalid DELETE_GROUP payload.");
         }
@@ -179,14 +156,11 @@ public class AdminProcessor implements PacketProcessor {
 
         groups.delete(groupeId);
         context.sendOk(groupeId, "Delete groupId " + groupeId);
+         */
     }
 
-    /*
-     * SET_PSEUDO payload:
-     *   [type:int][pseudoLen:int][pseudo:bytes]
-     * The user whose pseudo is changed is callerId (pkt.from()).
-     */
-    private void handleSetPseudo(int callerId, ByteBuffer payload) {
+    private void handleSetPseudo(Packet pkt) {
+        /*
         String newPseudo = readString(payload);
         if (newPseudo == null || newPseudo.isEmpty()) {
             throw new IllegalArgumentException("Invalid SET_PSEUDO payload.");
@@ -199,14 +173,11 @@ public class AdminProcessor implements PacketProcessor {
 
         users.setPseudo(callerId, newPseudo);
         context.sendOk(callerId, "New pseudo set: " + newPseudo);
+         */
     }
 
-    /*
-     * ADD_CONTACT payload:
-     *   [type:int][contactId:int]
-     * The owner of the contact list is callerId.
-     */
-    private void handleAddContact(int callerId, ByteBuffer payload) {
+    private void handleAddContact(Packet pkt) {
+        /*
         if (payload.remaining() < Integer.BYTES) {
             throw new IllegalArgumentException("Invalid ADD_CONTACT payload.");
         }
@@ -222,24 +193,6 @@ public class AdminProcessor implements PacketProcessor {
 
         contacts.addContact(caller, newContact);
         context.sendOk(contactId, "New contactId " + contactId + " added to userId " + callerId +  "'s contacts list");
-    }
-
-
-    // ====================================================================
-    // Helpers (same as DirectMessageProcessor and GroupMessageProcessor)
-    // ====================================================================
-
-    // Helper to read bytes from the payload and convert them into a String
-    // [len:int][len bytes]
-    private String readString(ByteBuffer buf) {
-        if (buf.remaining() < Integer.BYTES) return null;
-
-        int len = buf.getInt(); // Consume [len:int]
-        if (len < 0 || buf.remaining() < len) return null;
-
-        byte[] data = new byte[len];
-        buf.get(data);
-        
-        return new String(data, StandardCharsets.UTF_8); // UTF-8 is the standard for network protocols (UTF-16 is used for java objects)
+         */
     }
 }

@@ -9,6 +9,5 @@ public final class PacketType {
     public static final int RENAME_GROUP = 6; // AdminProcessor
     public static final int DELETE_GROUP = 7; // AdminProcessor
     public static final int SET_PSEUDO = 8; // UserProcessor
-    public static final int ADD_CONTACT = 9; // UserProcessor
     public static final int ERROR = -1; // Simple reply (ex: sendError...)
 }

@@ -5,6 +5,9 @@ import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
 import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.TchatsAppServer;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+
 public class StrategyContext {
         private final TchatsAppServer server;
         private final Packet packet;
@@ -35,6 +38,18 @@ public class StrategyContext {
             System.out.println("ERREUR :" + errorMessage);
         }
         */
+
+    private String readString(ByteBuffer buf) {
+        if (buf.remaining() < Integer.BYTES) return null;
+
+        int len = buf.getInt(); // Consume [len:int]
+        if (len < 0 || buf.remaining() < len) return null;
+
+        byte[] data = new byte[len];
+        buf.get(data);
+
+        return new String(data, StandardCharsets.UTF_8); // UTF-8 is the standard for network protocols (UTF-16 is used for java objects)
+    }
 
         public ServerState serverState() {
             return server.getServerState();
