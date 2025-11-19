@@ -24,7 +24,7 @@ public class Packet {
     private static final int OFFSET_LENGTH = 0;
     private static final int OFFSET_FROM   = Integer.BYTES;
     private static final int OFFSET_TO     = 2 * Integer.BYTES;
-    private static final int OFFSET_TYPE   = Integer.BYTES;
+    private static final int OFFSET_TYPE   = 3 * Integer.BYTES;
     private final static int HEADER_SIZE   = 4 * Integer.BYTES;
 
 
@@ -160,9 +160,11 @@ public class Packet {
         return new Packet(buf);
     }
 
-    public static Packet createTextMessage(int from, int to, String content) {
+    public static Packet createTextMessage(int from, int to, int type, String content) {
         byte[] payload = content.getBytes();
-        return  new PacketBuilder(payload.length,from,to).setPayload(payload).build();
+        return  new PacketBuilder(payload.length, from, to, type)
+            .setPayload(payload)
+            .build();
     }
 
     public static Packet createEmptyPacket(int from, int to) {
