@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
  * It contains a ByteBuffer where the first 4 bytes are the length (in bytes) of the payload (i.e. the content),
  * then 4 bytes for the sender id, 4 bytes for the recipient id and then the payload.
  */
-public class Packet implements Serializable {
+public class Packet {
 
     // private static final int OFFSET_LENGTH = 0;
     private static final int OFFSET_FROM   = Integer.BYTES;
