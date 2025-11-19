@@ -51,7 +51,7 @@ public class RouterPacketProcessor implements PacketProcessor {
 
         // 3) Direct messages
         if (users.exists(to)) {
-            if (textGroupHandler != null) textDirectHandler.process(pkt);
+            if (textDirectHandler != null) textDirectHandler.process(pkt);
             return;
         }
     }
