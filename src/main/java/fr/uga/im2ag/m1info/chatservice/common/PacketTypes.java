@@ -1,6 +1,6 @@
 package fr.uga.im2ag.m1info.chatservice.common;
 
-public final class PacketType {
+public final class PacketTypes {
     public static final int TEXT = 1;
     public static final int CREATE_GROUP = 2;
     public static final int ADD_MEMBER = 3;

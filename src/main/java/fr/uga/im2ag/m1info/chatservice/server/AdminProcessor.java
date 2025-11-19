@@ -1,7 +1,6 @@
-package fr.uga.im2ag.m1info.chatservice.server.packets;
+package fr.uga.im2ag.m1info.chatservice.server;
 
 import fr.uga.im2ag.m1info.chatservice.common.*;
-import fr.uga.im2ag.m1info.chatservice.server.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -9,16 +8,20 @@ import java.nio.charset.StandardCharsets;
 /*
  * Handles commands of type "admin" (destId == 0)
  */
-public class AdminProcessor implements PacketStrategy {
+public class AdminProcessor implements PacketProcessor {
+    private PacketSender server;
     private UserRegistry users;
     private GroupRegistry groups;
     private ContactRegistry contacts;
-    private IdGenerator idGenerator;
 
-    public AdminProcessor(ServerState server) {
-        this.users = server.getUserRegistry();
-        this.groups = server.getGroupRegistry();
-        this.contacts = server.getContactRegistry();
+    public AdminProcessor(PacketSender server,
+                          UserRegistry users,
+                          GroupRegistry groups,
+                          ContactRegistry contacts) {
+        this.server = server;
+        this.users = users;
+        this.groups = groups;
+        this.contacts = contacts;
     }
 
     @Override
@@ -36,25 +39,25 @@ public class AdminProcessor implements PacketStrategy {
         int type = payload.get();
 
         switch (type) {
-            case PacketType.CREATE_GROUP:
+            case PacketTypes.CREATE_GROUP:
                 handleCreateGroup(pkt.from(), payload);
                 break;
-            case PacketType.ADD_MEMBER:
+            case PacketTypes.ADD_MEMBER:
                 handleAddMember(pkt.from(), payload);
                 break;
-            case PacketType.REMOVE_MEMBER:
+            case PacketTypes.REMOVE_MEMBER:
                 handleRemoveMember(pkt.from(), payload);
                 break;
-            case PacketType.RENAME_GROUP:
+            case PacketTypes.RENAME_GROUP:
                 handleRenameGroup(pkt.from(), payload);
                 break;
-            case PacketType.DELETE_GROUP:
+            case PacketTypes.DELETE_GROUP:
                 handleDeleteGroup(pkt.from(), payload);
                 break;
-            case PacketType.SET_PSEUDO:
+            case PacketTypes.SET_PSEUDO:
                 handleSetPseudo(pkt.from(), payload);
                 break;
-            case PacketType.ADD_CONTACT:
+            case PacketTypes.ADD_CONTACT:
                 handleAddContact(pkt.from(), payload);
                 break;
             default:
@@ -92,10 +95,6 @@ public class AdminProcessor implements PacketStrategy {
         sendOk(callerId, "GROUP_CREATED with groupId: " + groupId);
     }
     
-    // ====================================================================
-    // Handlers
-    // ====================================================================
-
     /*
      * ADD_MEMBER payload:
      *   [type:int][groupId:int][memberId:int]
@@ -254,7 +253,7 @@ public class AdminProcessor implements PacketStrategy {
 
         byte[] data = new byte[len];
         buf.get(data);
-
+        
         return new String(data, StandardCharsets.UTF_8); // UTF-8 is the standard for network protocols (UTF-16 is used for java objects)
     }
 
@@ -262,11 +261,11 @@ public class AdminProcessor implements PacketStrategy {
     // We can later switch to real PacketTypes.ERROR
     private void sendOk(int to, String msg) {
         Packet p = Packet.createTextMessage(0, to, "OK " + msg);
-        //server.sendPacket(p);
+        server.sendPacket(p);
     }
 
     private void sendError(int to, String msg) {
         Packet p = Packet.createTextMessage(0, to, "ERROR " + msg);
-        //server.sendPacket(p);
+        server.sendPacket(p);
     }
 }
