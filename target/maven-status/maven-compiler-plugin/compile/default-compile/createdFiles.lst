@@ -1,0 +1,16 @@
+fr/uga/im2ag/m1info/chatservice/common/Group.class
+fr/uga/im2ag/m1info/chatservice/common/User.class
+fr/uga/im2ag/m1info/chatservice/server/ServerState.class
+fr/uga/im2ag/m1info/chatservice/server/ContactRegistry.class
+fr/uga/im2ag/m1info/chatservice/server/UserRegistry.class
+fr/uga/im2ag/m1info/chatservice/client/ClientState.class
+fr/uga/im2ag/m1info/chatservice/server/GroupRegistry.class
+fr/uga/im2ag/m1info/chatservice/common/PacketType.class
+fr/uga/im2ag/m1info/chatservice/client/Client2.class
+fr/uga/im2ag/m1info/chatservice/common/Packet$PacketBuilder.class
+fr/uga/im2ag/m1info/chatservice/server/IdGenerator.class
+fr/uga/im2ag/m1info/chatservice/server/ServerState$IdIntGenerator.class
+fr/uga/im2ag/m1info/chatservice/common/PacketSender.class
+fr/uga/im2ag/m1info/chatservice/common/Packet.class
+fr/uga/im2ag/m1info/chatservice/client/Client.class
+fr/uga/im2ag/m1info/chatservice/common/PacketProcessor.class

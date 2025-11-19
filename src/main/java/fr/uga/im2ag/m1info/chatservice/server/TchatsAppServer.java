@@ -12,8 +12,10 @@
 package fr.uga.im2ag.m1info.chatservice.server;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
+import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
-import fr.uga.im2ag.m1info.chatservice.server.processors.PacketRouter;
+import fr.uga.im2ag.m1info.chatservice.server.routage.PacketRouter;
+import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -66,7 +68,7 @@ public class TchatsAppServer implements PacketSender {
     /**
      * The processor responsible for processing received packets
      */
-    private PacketRouter packetProcessor;
+    private PacketRouter packetRouter;
 
     /**
      * Generator used for new client ids
@@ -175,7 +177,7 @@ public class TchatsAppServer implements PacketSender {
      */
     public void setPacketProcessor(PacketRouter pp) {
         if (pp==null) throw new NullPointerException("Packet Processor cannot be null");
-        packetProcessor=pp;
+        packetRouter=pp;
     }
 
     public void setClientIdGenerator(IdGenerator gen) {
@@ -324,7 +326,10 @@ public class TchatsAppServer implements PacketSender {
                         if (state.currentPacket.fillFrom(buf).isCompleted()) {
                             Packet msg = state.currentPacket.build();
                             state.currentPacket=null;
-                            workers.submit(() -> packetProcessor.route(msg));
+                            workers.submit(() -> {
+                                PacketProcessor s = packetRouter.resolve(msg, context); // choix de la stratégie
+                                s.process(msg);
+                            });
                             LOG.info("packet read from client " + state.clientId);
                         }
                     }

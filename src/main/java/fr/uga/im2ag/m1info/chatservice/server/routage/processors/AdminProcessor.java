@@ -1,10 +1,11 @@
-package fr.uga.im2ag.m1info.chatservice.server.processors;
+package fr.uga.im2ag.m1info.chatservice.server.routage.processors;
 
 import fr.uga.im2ag.m1info.chatservice.common.*;
 import fr.uga.im2ag.m1info.chatservice.server.ContactRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.GroupRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -13,14 +14,16 @@ import java.nio.charset.StandardCharsets;
  * Handles commands of type "admin" (to == 0)
  */
 public class AdminProcessor implements PacketProcessor {
+    private StrategyContext context;
     private UserRegistry users;
     private GroupRegistry groups;
     private ContactRegistry contacts;
 
-    public AdminProcessor(ServerState serverState) {
-        this.users = serverState.getUserRegistry();
-        this.groups = serverState.getGroupRegistry();
-        this.contacts = serverState.getContactRegistry();
+    public AdminProcessor(StrategyContext context) {
+        this.context = context;
+        this.users = context.serverState().getUserRegistry();
+        this.groups = context.serverState().getGroupRegistry();
+        this.contacts = context.serverState().getContactRegistry();
     }
 
     @Override
@@ -29,13 +32,14 @@ public class AdminProcessor implements PacketProcessor {
 
         // If the payload or its size is invalid -> error
         if (payload == null || payload.remaining() < Integer.BYTES) { // Integer.BYTES has a value of 4
-            sendError(pkt.from(), "Empty or invalid Admin payload."); // Reply to the sender with an ERROR
+            context.sendError(pkt.from(), "Empty or invalid Admin payload."); // Reply to the sender with an ERROR
             return;
         }
 
         // Payload header [first byte of the payload] = PacketType.*
         // [PacketType: int][Rest of the payload...]
-        int type = payload.get();
+        //int type = pkt.getType(); // type propre a venir
+        int type = payload.get(); // En attendant
 
         switch (type) {
             case PacketType.CREATE_GROUP:
@@ -60,7 +64,7 @@ public class AdminProcessor implements PacketProcessor {
                 handleAddContact(pkt.from(), payload);
                 break;
             default:
-                sendError(pkt.from(), "Unknown admin packet type: " + type);
+                context.sendError(pkt.from(), "Unknown admin packet type: " + type);
         }
     }
 
@@ -78,20 +82,20 @@ public class AdminProcessor implements PacketProcessor {
     private void handleCreateGroup(int callerId, ByteBuffer payload) {
         String title = readString(payload);
         if (title == null || title.isEmpty()) {
-            sendError(callerId, "invalid CREATE_GROUP payload.");
+            context.sendError(callerId, "invalid CREATE_GROUP payload.");
             return;
         }
 
         // We don't know how this could happen but we still handle this error just in case
         if (!users.exists(callerId)) {
-            sendError(callerId, "unknown user " + callerId);
+            context.sendError(callerId, "unknown user " + callerId);
             return;
         }
 
         // Create the group
         int groupId = groups.createGroup(title, callerId);
         
-        sendOk(callerId, "GROUP_CREATED with groupId: " + groupId);
+        context.sendOk(callerId, "GROUP_CREATED with groupId: " + groupId);
     }
     
     /*
@@ -100,7 +104,7 @@ public class AdminProcessor implements PacketProcessor {
      */
     private void handleAddMember(int callerId, ByteBuffer payload) {
         if (payload.remaining() < 2 * Integer.BYTES) {
-            sendError(callerId, "Invalid ADD_MEMBER payload");
+            context.sendError(callerId, "Invalid ADD_MEMBER payload");
             return;
         }
 
@@ -108,17 +112,17 @@ public class AdminProcessor implements PacketProcessor {
         int memberId = payload.getInt();
 
         if (!groups.exists(groupId)) {
-            sendError(groupId, "Unknown groupId: " + groupId);
+            context.sendError(groupId, "Unknown groupId: " + groupId);
             return;
         }
 
         if (!users.exists(memberId)) {
-            sendError(memberId, "Unknown memberId: " + memberId);
+            context.sendError(memberId, "Unknown memberId: " + memberId);
             return;
         }
 
         groups.addMember(groupId, memberId);
-        sendOk(callerId, "memberId " + memberId + " added to groupId " + groupId);
+        context.sendOk(callerId, "memberId " + memberId + " added to groupId " + groupId);
     }
 
     /*
@@ -127,7 +131,7 @@ public class AdminProcessor implements PacketProcessor {
      */
     private void handleRemoveMember(int callerId, ByteBuffer payload) {
         if (payload.remaining() < 2 * Integer.BYTES) {
-            sendError(callerId, "Invalid REMOVE_MEMBER payload");
+            context.sendError(callerId, "Invalid REMOVE_MEMBER payload");
             return;
         }
 
@@ -135,12 +139,12 @@ public class AdminProcessor implements PacketProcessor {
         int memberId = payload.getInt();
 
         if (!groups.exists(groupId)) {
-            sendError(callerId, "unknown group " + groupId);
+            context.sendError(callerId, "unknown group " + groupId);
             return;
         }
 
         groups.removeMember(groupId, memberId);
-        sendOk(memberId, "memberId " + memberId + " removed from groupId " + groupId);
+        context.sendOk(memberId, "memberId " + memberId + " removed from groupId " + groupId);
     }
 
     /*
@@ -150,24 +154,24 @@ public class AdminProcessor implements PacketProcessor {
     private void handleRenameGroup(int callerId, ByteBuffer payload) {
         // We only need to check for a single byte -> groupeId, because the rest is handled by readString
         if (payload.remaining() < Integer.BYTES) {
-            sendError(callerId, "Invalid RENAME_GROUP payload.");
+            context.sendError(callerId, "Invalid RENAME_GROUP payload.");
             return;
         }
 
         int groupeId = payload.getInt();
         if (!groups.exists(groupeId)) {
-            sendError(groupeId, "Unknown groupeId " + groupeId);
+            context.sendError(groupeId, "Unknown groupeId " + groupeId);
             return;
         }
 
         String newTitle = readString(payload);
         if (newTitle == null || newTitle.isEmpty()) {
-            sendError(groupeId, "Group title is either empty or invalid.");
+            context.sendError(groupeId, "Group title is either empty or invalid.");
             return;
         }
 
         groups.rename(groupeId, newTitle);
-        sendOk(callerId, "groupId " + groupeId + " has been renamed to " + newTitle);
+        context.sendOk(callerId, "groupId " + groupeId + " has been renamed to " + newTitle);
     }
 
     /*
@@ -176,18 +180,18 @@ public class AdminProcessor implements PacketProcessor {
      */
     private void handleDeleteGroup(int callerId, ByteBuffer payload) {
         if (payload.remaining() < Integer.BYTES) {
-            sendError(callerId, "Invalid DELETE_GROUP payload.");
+            context.sendError(callerId, "Invalid DELETE_GROUP payload.");
             return;
         }
 
         int groupeId = payload.getInt();
         if (!groups.exists(groupeId)) {
-            sendError(groupeId, "Unknown groupId " + groupeId);
+            context.sendError(groupeId, "Unknown groupId " + groupeId);
             return;
         }
 
         groups.delete(groupeId);
-        sendOk(groupeId, "Delete groupId " + groupeId);
+        context.sendOk(groupeId, "Delete groupId " + groupeId);
     }
 
     /*
@@ -198,18 +202,18 @@ public class AdminProcessor implements PacketProcessor {
     private void handleSetPseudo(int callerId, ByteBuffer payload) {
         String newPseudo = readString(payload);
         if (newPseudo == null || newPseudo.isEmpty()) {
-            sendError(callerId, "Invalid SET_PSEUDO payload.");
+            context.sendError(callerId, "Invalid SET_PSEUDO payload.");
             return;
         }
 
         // Safety net -> we still check it regardless just in case
         if (!users.exists(callerId)) {
-            sendError(callerId, "Unknown callerid " + callerId);
+            context.sendError(callerId, "Unknown callerid " + callerId);
             return;
         }
 
         users.setPseudo(callerId, newPseudo);
-        sendOk(callerId, "New pseudo set: " + newPseudo);
+        context.sendOk(callerId, "New pseudo set: " + newPseudo);
     }
 
     /*
@@ -219,13 +223,13 @@ public class AdminProcessor implements PacketProcessor {
      */
     private void handleAddContact(int callerId, ByteBuffer payload) {
         if (payload.remaining() < Integer.BYTES) {
-            sendError(callerId, "Invalid ADD_CONTACT payload.");
+            context.sendError(callerId, "Invalid ADD_CONTACT payload.");
             return;
         }
 
         int contactId = payload.getInt();
         if (!users.exists(callerId) || !users.exists(contactId)) {
-            sendError(callerId, "Uknown ID.");
+            context.sendError(callerId, "Uknown ID.");
             return;
         }
 
@@ -234,7 +238,7 @@ public class AdminProcessor implements PacketProcessor {
         User newContact = users.getUser(callerId);
 
         contacts.addContact(caller, newContact);
-        sendOk(contactId, "New contactId " + contactId + " added to userId " + callerId +  "'s contacts list");
+        context.sendOk(contactId, "New contactId " + contactId + " added to userId " + callerId +  "'s contacts list");
     }
 
 
@@ -254,17 +258,5 @@ public class AdminProcessor implements PacketProcessor {
         buf.get(data);
         
         return new String(data, StandardCharsets.UTF_8); // UTF-8 is the standard for network protocols (UTF-16 is used for java objects)
-    }
-
-    // For now we just send a TEXT packet with "OK ..." / "ERROR ...".
-    // We can later switch to real PacketTypes.ERROR
-    private void sendOk(int to, String msg) {
-        Packet p = Packet.createTextMessage(0, to, "OK " + msg);
-        //server.sendPacket(p);
-    }
-
-    private void sendError(int to, String msg) {
-        Packet p = Packet.createTextMessage(0, to, "ERROR " + msg);
-        //server.sendPacket(p);
     }
 }
