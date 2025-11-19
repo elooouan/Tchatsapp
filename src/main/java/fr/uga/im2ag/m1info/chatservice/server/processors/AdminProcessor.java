@@ -1,24 +1,26 @@
-package fr.uga.im2ag.m1info.chatservice.server.packets;
+package fr.uga.im2ag.m1info.chatservice.server.processors;
 
 import fr.uga.im2ag.m1info.chatservice.common.*;
-import fr.uga.im2ag.m1info.chatservice.server.*;
+import fr.uga.im2ag.m1info.chatservice.server.ContactRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.GroupRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.ServerState;
+import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 /*
- * Handles commands of type "admin" (destId == 0)
+ * Handles commands of type "admin" (to == 0)
  */
-public class AdminProcessor implements PacketStrategy {
+public class AdminProcessor implements PacketProcessor {
     private UserRegistry users;
     private GroupRegistry groups;
     private ContactRegistry contacts;
-    private IdGenerator idGenerator;
 
-    public AdminProcessor(ServerState server) {
-        this.users = server.getUserRegistry();
-        this.groups = server.getGroupRegistry();
-        this.contacts = server.getContactRegistry();
+    public AdminProcessor(ServerState serverState) {
+        this.users = serverState.getUserRegistry();
+        this.groups = serverState.getGroupRegistry();
+        this.contacts = serverState.getContactRegistry();
     }
 
     @Override
@@ -58,7 +60,7 @@ public class AdminProcessor implements PacketStrategy {
                 handleAddContact(pkt.from(), payload);
                 break;
             default:
-                sendError(pkt.from(), "unknown admin packet type: " + type);
+                sendError(pkt.from(), "Unknown admin packet type: " + type);
         }
     }
 
@@ -92,10 +94,6 @@ public class AdminProcessor implements PacketStrategy {
         sendOk(callerId, "GROUP_CREATED with groupId: " + groupId);
     }
     
-    // ====================================================================
-    // Handlers
-    // ====================================================================
-
     /*
      * ADD_MEMBER payload:
      *   [type:int][groupId:int][memberId:int]
@@ -241,7 +239,7 @@ public class AdminProcessor implements PacketStrategy {
 
 
     // ====================================================================
-    // Helpers
+    // Helpers (same as DirectMessageProcessor and GroupMessageProcessor)
     // ====================================================================
 
     // Helper to read bytes from the payload and convert them into a String
@@ -254,7 +252,7 @@ public class AdminProcessor implements PacketStrategy {
 
         byte[] data = new byte[len];
         buf.get(data);
-
+        
         return new String(data, StandardCharsets.UTF_8); // UTF-8 is the standard for network protocols (UTF-16 is used for java objects)
     }
 
