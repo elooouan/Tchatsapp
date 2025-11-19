@@ -3,7 +3,6 @@ package fr.uga.im2ag.m1info.chatservice.server.routage.processors;
 import fr.uga.im2ag.m1info.chatservice.common.*;
 import fr.uga.im2ag.m1info.chatservice.server.ContactRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.GroupRegistry;
-import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
