@@ -13,7 +13,6 @@ package fr.uga.im2ag.m1info.chatservice.client;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
-import fr.uga.im2ag.m1info.chatservice.client.ihm.Window;
 
 import javax.swing.*;
 import java.io.DataInputStream;
@@ -122,15 +121,6 @@ public class Client {
 
     /** A bsic client in command line **/
     public static void main(String[] args) throws IOException, InterruptedException {
-
-        // Ouvrir la fenêtre
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new Window();
-
-            }
-        });
-
         Scanner sc = new Scanner(System.in);
         System.out.println("Votre id ? (0 pour en créer un nouveau)");
         int clientId =  sc.nextInt();
@@ -162,5 +152,8 @@ public class Client {
             c.disconnect();
             System.exit(0);
         }
+
     }
+
+
 }

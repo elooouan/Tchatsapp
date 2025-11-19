@@ -11,6 +11,8 @@
 
 package fr.uga.im2ag.m1info.chatservice.server;
 
-public interface IdGenerator {
+import java.io.Serializable;
+
+public interface IdGenerator extends Serializable {
     public int generateId();
 }

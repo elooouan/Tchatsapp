@@ -13,8 +13,12 @@ package fr.uga.im2ag.m1info.chatservice.server;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
+import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
+import fr.uga.im2ag.m1info.chatservice.server.routage.PacketRouter;
+import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
+import fr.uga.im2ag.m1info.chatservice.server.routage.processors.ErrorProcessor;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
@@ -27,7 +31,7 @@ import java.util.logging.Logger;
 /**
  * A server that
  */
-public class TchatsAppServer {
+public class TchatsAppServer implements PacketSender {
     private final static Logger LOG = Logger.getLogger(TchatsAppServer.class.getName());
 
     /**
@@ -63,11 +67,6 @@ public class TchatsAppServer {
     private final Map<Integer, Queue<ByteBuffer>> clientQueues = new ConcurrentHashMap<>();
 
     /**
-     * The processor responsible for processing received packets
-     */
-    private PacketProcessor packetProcessor;
-
-    /**
      * Generator used for new client ids
      */
     private IdGenerator idGenerator;
@@ -87,7 +86,7 @@ public class TchatsAppServer {
      */
     private final Selector selector;
     private volatile boolean started;
-
+    private ServerState serverState;
 
 
     /**
@@ -116,7 +115,7 @@ public class TchatsAppServer {
     /**
      * Initializes a new server with a default packet processor that forwards packet to the
      * recipient. This default behavior can be changed by supplying a customized PacketProcessor to
-     * the method {@link #setPacketProcessor setPacketProcessor }
+     * the method setPacketProcessor }
      * @param port the port on which the server is listening
      * @param workerThreads the number of threads used to process packets
      * @throws IOException
@@ -129,7 +128,7 @@ public class TchatsAppServer {
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
         this.workers = Executors.newFixedThreadPool(workerThreads);
         setClientIdGenerator(new AtomicInteger(1)::getAndIncrement); // by default, clients id are generated using a sequence (use atomic integer for concurrency)
-        setPacketProcessor(this::sendPacket); // by default, forward the message to the recipient (works only for client to client, but not for groups)
+        //setPacketProcessor(this::sendPacket); // by default, forward the message to the recipient (works only for client to client, but not for groups)
         LOG.info("Server started on port " + port + " with " + workerThreads + " workers");
 
     }
@@ -163,17 +162,9 @@ public class TchatsAppServer {
      * Stops th server
      */
     public void stop() {
+        saveData();
         started=false;
         selector.wakeup();
-    }
-
-    /**
-     * Set the packet processor to be used to handle requests from clients
-     * @param pp
-     */
-    public void setPacketProcessor(PacketProcessor pp) {
-        if (pp==null) throw new NullPointerException("Packet Processor cannot be null");
-        packetProcessor=pp;
     }
 
     public void setClientIdGenerator(IdGenerator gen) {
@@ -322,7 +313,18 @@ public class TchatsAppServer {
                         if (state.currentPacket.fillFrom(buf).isCompleted()) {
                             Packet msg = state.currentPacket.build();
                             state.currentPacket=null;
-                            workers.submit(() -> packetProcessor.process(msg));
+                            workers.submit(() -> {
+                                StrategyContext context = new StrategyContext(this, msg);
+                                PacketRouter router = new PacketRouter(context);
+                                PacketProcessor s;
+                                try {
+                                    s = router.resolve(msg); // choix de la stratégie
+                                } catch (RuntimeException err) {
+                                    s = new ErrorProcessor(context); // si une erreur trouvée, erreur
+                                    ((ErrorProcessor) s).setError(err.getMessage());
+                                }
+                                s.process(msg);
+                            });
                             LOG.info("packet read from client " + state.clientId);
                         }
                     }
@@ -375,12 +377,67 @@ public class TchatsAppServer {
         }
     }
 
+    private void loadData(){
+        File stateFile = new File("state.ser");
+        if(!stateFile.exists()){
+            serverState = new ServerState();
+            return;
+        }
+
+        try {
+            ObjectInputStream ois;
+
+            FileInputStream dataFile = new FileInputStream("state.ser");
+            ois = new ObjectInputStream(dataFile);
+            serverState = (ServerState) ois.readObject();
+            ois.close();
+            dataFile.close();
+
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private void saveData(){
+        try{
+            ObjectOutputStream oos;
+
+            FileOutputStream dataFile = new FileOutputStream("state.ser");
+            oos = new ObjectOutputStream(dataFile);
+            oos.writeObject(serverState);
+            oos.close();
+            dataFile.close();
+
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public ServerState getServerState(){
+        return serverState;
+    }
+
 
     public static void main(String[] args) throws Exception {
         int port = 1666;
         int workers = Math.max(2, Runtime.getRuntime().availableProcessors());
-        TchatsAppServer s =  new TchatsAppServer(port, workers);
 
-        s.start(); // methode bloquante
+        // Create server
+        TchatsAppServer s =  new TchatsAppServer(port, workers);
+        
+        // Load persistent state (if any)
+         s.loadData();
+        // ServerState state = s.getServerState();
+        
+        // For now we ignore state -> registries wiring and just create fresh registries.
+        // We can later plug ServerState into the registries if required.
+
+        // Save initial state (NEED TO IMPLEMENT)
+        s.saveData();
+
+        // Start the server (blocking)
+        s.start();
     }
 }

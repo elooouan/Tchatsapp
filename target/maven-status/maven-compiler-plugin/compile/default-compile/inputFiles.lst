@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/Client.java
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/Client2.java
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ClientState.java
@@ -14,3 +15,27 @@
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/User.java
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/IdGenerator.java
 /Users/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/TchatsAppServer.java
+=======
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/Client.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/Client2.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ClientState.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/Group.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/Packet.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/PacketProcessor.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/PacketSender.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/PacketType.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/User.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/ContactRegistry.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/GroupRegistry.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/IdGenerator.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/ServerState.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/TchatsAppServer.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/UserRegistry.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/routage/PacketRouter.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/routage/StrategyContext.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/routage/processors/AdminProcessor.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/routage/processors/DirectMessageProcessor.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/routage/processors/ErrorProcessor.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/routage/processors/GroupMessageProcessor.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/server/routage/processors/UserProcessor.java
+>>>>>>> main
