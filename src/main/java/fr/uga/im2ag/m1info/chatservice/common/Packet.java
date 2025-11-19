@@ -47,6 +47,11 @@ public class Packet {
             buf.putInt(to);
         }
 
+        public PacketBuilder(int dataSize,int from, int to, int type) {
+            this(dataSize,from,to);
+            buf.putInt(type);
+        }
+
        public PacketBuilder setFrom(int from) {
             buf.putInt(OFFSET_FROM,from);
             return this;
