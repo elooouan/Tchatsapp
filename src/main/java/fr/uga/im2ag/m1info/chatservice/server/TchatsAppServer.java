@@ -86,7 +86,7 @@ public class TchatsAppServer implements PacketSender {
      */
     private final Selector selector;
     private volatile boolean started;
-    private ServerState serverState;
+    private static ServerState serverState;
 
 
     /**
@@ -415,7 +415,7 @@ public class TchatsAppServer implements PacketSender {
 
     }
 
-    public ServerState getServerState(){
+    public static ServerState getServerState(){
         return serverState;
     }
 
@@ -429,10 +429,6 @@ public class TchatsAppServer implements PacketSender {
         
         // Load persistent state (if any)
          s.loadData();
-        // ServerState state = s.getServerState();
-        
-        // For now we ignore state -> registries wiring and just create fresh registries.
-        // We can later plug ServerState into the registries if required.
 
         // Save initial state (NEED TO IMPLEMENT)
         s.saveData();
