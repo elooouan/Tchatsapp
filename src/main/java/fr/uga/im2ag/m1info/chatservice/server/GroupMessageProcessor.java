@@ -31,12 +31,12 @@ public class GroupMessageProcessor implements PacketProcessor {
         int groupId = pkt.to(); // msg to group
 
         if (!users.exists(from)) {
-            sendError(from, "Unknown senderId: " + from);
+            sendError(from, "Unknown sender: " + from);
             return;
         }
 
-        if (!users.exists(groupId)) {
-            sendError(from, "Unknown groupId: " + groupId);
+        if (!groups.exists(groupId)) {
+            sendError(from, "Unknown group: " + groupId);
             return;
         }
         
