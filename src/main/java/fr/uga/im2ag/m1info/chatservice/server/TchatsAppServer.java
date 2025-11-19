@@ -16,6 +16,7 @@ import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
 import fr.uga.im2ag.m1info.chatservice.server.routage.PacketRouter;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
+import fr.uga.im2ag.m1info.chatservice.server.routage.processors.ErrorProcessor;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -315,7 +316,13 @@ public class TchatsAppServer implements PacketSender {
                             workers.submit(() -> {
                                 StrategyContext context = new StrategyContext(this, msg);
                                 PacketRouter router = new PacketRouter(context);
-                                PacketProcessor s = router.resolve(msg); // choix de la stratégie
+                                PacketProcessor s;
+                                try {
+                                    s = router.resolve(msg); // choix de la stratégie
+                                } catch (RuntimeException err) {
+                                    context.setError(err);
+                                    s = new ErrorProcessor(context); // si une erreur trouvée, erreur
+                                }
                                 s.process(msg);
                             });
                             LOG.info("packet read from client " + state.clientId);

@@ -33,27 +33,23 @@ public class GroupMessageProcessor implements PacketProcessor {
         int groupId = pkt.to(); // msg to group
 
         if (!users.exists(from)) {
-            context.sendError("Unknown sender: " + from);
-            return;
+            throw new IllegalArgumentException("Unknown sender: " + from);
         }
 
         if (!groups.exists(groupId)) {
-            context.sendError("Unknown group: " + groupId);
-            return;
+            throw new IllegalArgumentException("Unknown group: " + groupId);
         }
         
         Group group = groups.getGroupById(groupId);
 
         // Enforce membership -> we can change this later if the group is public
         if (!group.getMembers().contains(from)) {
-            context.sendError("User " + from + " is not a member of group " + groupId);
-            return;
+            throw new IllegalArgumentException("User " + from + " is not a member of group " + groupId);
         }
 
         ByteBuffer payload = pkt.getPayload();
         if (payload == null || payload.remaining() == 0) {
-            context.sendError("Empty group message payload.");
-            return;
+            throw new IllegalArgumentException("Empty group message payload.");
         }
 
         ByteBuffer readOnly = payload.asReadOnlyBuffer(); // Read Only duplicate of the payload to avoid interfering with the original buffer
@@ -74,6 +70,6 @@ public class GroupMessageProcessor implements PacketProcessor {
         }
 
         // Comment/Uncomment this ACK - use this for debugging (on the sender side)
-        context.sendOk("Message sent to group " + groupId);
+        context.sendOk(pkt.from(), "Message sent to group " + groupId);
     }
 }

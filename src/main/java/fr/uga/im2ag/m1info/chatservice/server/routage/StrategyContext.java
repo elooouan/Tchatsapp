@@ -17,26 +17,24 @@ public class StrategyContext {
         public Packet getPacket() { return packet; }
 
         public void send(Packet p) {
+            // Envoyer des paquets aux users
             server.sendPacket(p);
         }
 
-        public void sendOk(String message) {
-            // PRINT CONSOLE
-        }
 
-        public void sendError(String error) {
-            // PRINT CONSOLE
-        }
+    public void sendOk(int cible, String message) {
+        //Packet ack = Packet.createAck(msg.to(), msg.from(), message);
+        //server.sendPacket(ack);
+        System.out.println("ACK");
+    }
 
-        public void sendOk(int cible, String message){
-            // build un packet d'erreur puis le send
-            //cible.sendPacket();
+        /*
+        public void sendError(int cible, String errorMessage) {
+            //Packet errPacket = Packet.createError(msg.to(), msg.from(), errorMessage);
+            //server.sendPacket(errPacket);
+            System.out.println("ERREUR :" + errorMessage);
         }
-
-        public void sendError(int cible, String message){
-            // pareil
-            //cible.sendPacket();
-        }
+        */
 
         public ServerState serverState() {
             return server.getServerState();

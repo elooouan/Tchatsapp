@@ -32,8 +32,7 @@ public class AdminProcessor implements PacketProcessor {
 
         // If the payload or its size is invalid -> error
         if (payload == null || payload.remaining() < Integer.BYTES) { // Integer.BYTES has a value of 4
-            context.sendError(pkt.from(), "Empty or invalid Admin payload."); // Reply to the sender with an ERROR
-            return;
+            throw new IllegalArgumentException("Empty or invalid Admin payload.");
         }
 
         // Payload header [first byte of the payload] = PacketType.*
@@ -64,7 +63,7 @@ public class AdminProcessor implements PacketProcessor {
                 handleAddContact(pkt.from(), payload);
                 break;
             default:
-                context.sendError(pkt.from(), "Unknown admin packet type: " + type);
+                throw new IllegalArgumentException("Unknown admin packet type: " + type);
         }
     }
 
@@ -82,14 +81,12 @@ public class AdminProcessor implements PacketProcessor {
     private void handleCreateGroup(int callerId, ByteBuffer payload) {
         String title = readString(payload);
         if (title == null || title.isEmpty()) {
-            context.sendError(callerId, "invalid CREATE_GROUP payload.");
-            return;
+            throw new IllegalArgumentException("invalid CREATE_GROUP payload.");
         }
 
         // We don't know how this could happen but we still handle this error just in case
         if (!users.exists(callerId)) {
-            context.sendError(callerId, "unknown user " + callerId);
-            return;
+            throw new IllegalArgumentException("unknown user " + callerId);
         }
 
         // Create the group
@@ -104,21 +101,18 @@ public class AdminProcessor implements PacketProcessor {
      */
     private void handleAddMember(int callerId, ByteBuffer payload) {
         if (payload.remaining() < 2 * Integer.BYTES) {
-            context.sendError(callerId, "Invalid ADD_MEMBER payload");
-            return;
+            throw new IllegalArgumentException("Invalid ADD_MEMBER payload");
         }
 
         int groupId = payload.getInt();
         int memberId = payload.getInt();
 
         if (!groups.exists(groupId)) {
-            context.sendError(groupId, "Unknown groupId: " + groupId);
-            return;
+            throw new IllegalArgumentException("Unknown groupId: " + groupId);
         }
 
         if (!users.exists(memberId)) {
-            context.sendError(memberId, "Unknown memberId: " + memberId);
-            return;
+            throw new IllegalArgumentException("Unknown memberId: " + memberId);
         }
 
         groups.addMember(groupId, memberId);
@@ -131,16 +125,14 @@ public class AdminProcessor implements PacketProcessor {
      */
     private void handleRemoveMember(int callerId, ByteBuffer payload) {
         if (payload.remaining() < 2 * Integer.BYTES) {
-            context.sendError(callerId, "Invalid REMOVE_MEMBER payload");
-            return;
+            throw new IllegalArgumentException("Invalid REMOVE_MEMBER payload");
         }
 
         int groupId = payload.getInt();
         int memberId = payload.getInt();
 
         if (!groups.exists(groupId)) {
-            context.sendError(callerId, "unknown group " + groupId);
-            return;
+            throw new IllegalArgumentException("unknown group " + groupId);
         }
 
         groups.removeMember(groupId, memberId);
@@ -154,20 +146,17 @@ public class AdminProcessor implements PacketProcessor {
     private void handleRenameGroup(int callerId, ByteBuffer payload) {
         // We only need to check for a single byte -> groupeId, because the rest is handled by readString
         if (payload.remaining() < Integer.BYTES) {
-            context.sendError(callerId, "Invalid RENAME_GROUP payload.");
-            return;
+            throw new IllegalArgumentException("Invalid RENAME_GROUP payload.");
         }
 
         int groupeId = payload.getInt();
         if (!groups.exists(groupeId)) {
-            context.sendError(groupeId, "Unknown groupeId " + groupeId);
-            return;
+            throw new IllegalArgumentException("Unknown groupeId " + groupeId);
         }
 
         String newTitle = readString(payload);
         if (newTitle == null || newTitle.isEmpty()) {
-            context.sendError(groupeId, "Group title is either empty or invalid.");
-            return;
+            throw new IllegalArgumentException("Group title is either empty or invalid.");
         }
 
         groups.rename(groupeId, newTitle);
@@ -180,14 +169,12 @@ public class AdminProcessor implements PacketProcessor {
      */
     private void handleDeleteGroup(int callerId, ByteBuffer payload) {
         if (payload.remaining() < Integer.BYTES) {
-            context.sendError(callerId, "Invalid DELETE_GROUP payload.");
-            return;
+            throw new IllegalArgumentException("Invalid DELETE_GROUP payload.");
         }
 
         int groupeId = payload.getInt();
         if (!groups.exists(groupeId)) {
-            context.sendError(groupeId, "Unknown groupId " + groupeId);
-            return;
+            throw new IllegalArgumentException("Unknown groupId " + groupeId);
         }
 
         groups.delete(groupeId);
@@ -202,14 +189,12 @@ public class AdminProcessor implements PacketProcessor {
     private void handleSetPseudo(int callerId, ByteBuffer payload) {
         String newPseudo = readString(payload);
         if (newPseudo == null || newPseudo.isEmpty()) {
-            context.sendError(callerId, "Invalid SET_PSEUDO payload.");
-            return;
+            throw new IllegalArgumentException("Invalid SET_PSEUDO payload.");
         }
 
         // Safety net -> we still check it regardless just in case
         if (!users.exists(callerId)) {
-            context.sendError(callerId, "Unknown callerid " + callerId);
-            return;
+            throw new IllegalArgumentException("Unknown callerid " + callerId);
         }
 
         users.setPseudo(callerId, newPseudo);
@@ -223,14 +208,12 @@ public class AdminProcessor implements PacketProcessor {
      */
     private void handleAddContact(int callerId, ByteBuffer payload) {
         if (payload.remaining() < Integer.BYTES) {
-            context.sendError(callerId, "Invalid ADD_CONTACT payload.");
-            return;
+            throw new IllegalArgumentException("Invalid ADD_CONTACT payload.");
         }
 
         int contactId = payload.getInt();
         if (!users.exists(callerId) || !users.exists(contactId)) {
-            context.sendError(callerId, "Uknown ID.");
-            return;
+            throw new IllegalArgumentException("Uknown ID.");
         }
 
         // Because contacts uses User not userId

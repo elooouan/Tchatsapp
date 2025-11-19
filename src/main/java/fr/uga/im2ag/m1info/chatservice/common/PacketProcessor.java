@@ -16,5 +16,5 @@ package fr.uga.im2ag.m1info.chatservice.common;
     pattern Strategy sur l'interprétation d'un packet
  */
 public interface PacketProcessor {
-    public void process(Packet msg);
+    void process(Packet msg) throws RuntimeException;
 }
