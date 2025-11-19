@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import fr.uga.im2ag.m1info.chatservice.common.Group;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
+import fr.uga.im2ag.m1info.chatservice.common.PacketType;
 import fr.uga.im2ag.m1info.chatservice.server.GroupRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
@@ -29,8 +30,15 @@ public class GroupMessageProcessor implements PacketProcessor {
 
     @Override
     public void process(Packet pkt) {
+        // Sanity check: this processor should only handle TEXT_GROUP packets
+        if (pkt.type() != PacketType.TEXT_GROUP) {
+            throw new IllegalArgumentException(
+                "GroupMessageProcessor received non TEXT_GROUP packet, type=" + pkt.type()
+            );
+        }
+
         int from = pkt.from();
-        int groupId = pkt.to(); // msg to group
+        int groupId = pkt.to(); // destination is a group
 
         if (!users.exists(from)) {
             throw new IllegalArgumentException("Unknown sender: " + from);

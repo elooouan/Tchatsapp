@@ -10,9 +10,7 @@ import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-/*
- * Handles commands of type "admin" (to == 0)
- */
+
 public class AdminProcessor implements PacketProcessor {
     private StrategyContext context;
     private UserRegistry users;
@@ -37,8 +35,7 @@ public class AdminProcessor implements PacketProcessor {
 
         // Payload header [first byte of the payload] = PacketType.*
         // [PacketType: int][Rest of the payload...]
-        //int type = pkt.getType(); // type propre a venir
-        int type = payload.get(); // En attendant
+        int type = pkt.type();
 
         switch (type) {
             case PacketType.CREATE_GROUP:

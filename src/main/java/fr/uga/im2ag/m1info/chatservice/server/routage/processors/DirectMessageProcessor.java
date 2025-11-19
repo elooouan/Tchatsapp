@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
+import fr.uga.im2ag.m1info.chatservice.common.PacketType;
 import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
@@ -18,6 +19,13 @@ public class DirectMessageProcessor implements PacketProcessor {
 
     @Override
     public void process(Packet pkt) {
+        // Sanity check: this processor should only handle TEXT_GROUP packets
+        if (pkt.type() != PacketType.TEXT_USER) {
+            throw new IllegalArgumentException(
+                "DirectMessageProcessor received non TEXT_USER packet, type=" + pkt.type()
+            );
+        }
+
         int from = pkt.from(); // a fix avec une structure meilleure
         int to = pkt.to();
 
@@ -36,7 +44,7 @@ public class DirectMessageProcessor implements PacketProcessor {
             throw new IllegalArgumentException("Empty direct message payload.");
         }
 
-        //sender.sendPacket(pkt);
+        context.send(pkt);
 
         // Comment/Uncomment this ACK - use this for debugging (on the sender side)
         context.sendOk(from, "Message sent to group " + to);
