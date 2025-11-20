@@ -122,6 +122,13 @@ public class Client {
             // TODO: send packet to server to get a new id
             //clientState = new ClientState(id);
             //return;
+
+//            String msg = packet.getPayloadAsString();
+//            String[] parts = msg.split(" ");
+//            int id = Integer.parseInt(parts[2]);
+
+//            clientState = new ClientState(id);
+//            return;
         }
 
         try {
