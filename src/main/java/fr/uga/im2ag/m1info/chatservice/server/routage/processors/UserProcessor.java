@@ -38,7 +38,7 @@ public class UserProcessor implements PacketProcessor {
             case ADD_CONTACT:
                 handleAddContact(pkt.from(), payload);
                 break;
-            case PacketType.CREATE_USER:
+            case CREATE_USER:
                 handleCreateUser(pkt.from(), payload);
                 break;
             default:

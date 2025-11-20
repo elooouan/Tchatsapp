@@ -10,7 +10,7 @@ public enum PacketType {
     DELETE_GROUP, // AdminProcessor
     SET_PSEUDO, // UserProcessor
     ADD_CONTACT, // UserProcessor
-    CREATE_USER, // TODO: add to a processor
+    CREATE_USER, // UserProcessor
     ERROR; // Simple reply (ex: sendError...)
 
     static public PacketType convertIntToPacketType(int type){
