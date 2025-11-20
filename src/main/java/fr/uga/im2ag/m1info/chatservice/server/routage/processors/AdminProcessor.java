@@ -55,7 +55,7 @@ public class AdminProcessor implements PacketProcessor {
 
     /*
      * CREATE_GROUP payload:
-     *   [type:int][titleLen:int][title:bytes]
+     *   [titleLen:int][title:bytes]
      */
     private void handleCreateGroup(int callerId, ByteBuffer payload) {
         String title = context.readString(payload);
@@ -73,7 +73,7 @@ public class AdminProcessor implements PacketProcessor {
 
     /*
      * ADD_MEMBER payload:
-     *   [type:int][groupId:int][memberId:int]
+     *   [groupId:int][memberId:int]
      */
     private void handleAddMember(int callerId, ByteBuffer payload) {
         if (payload.remaining() < 2 * Integer.BYTES) {
@@ -98,7 +98,7 @@ public class AdminProcessor implements PacketProcessor {
 
     /*
      * REMOVE_MEMBER payload:
-     *   [type:int][groupId:int][memberId:int]
+     *   [groupId:int][memberId:int]
      */
     private void handleRemoveMember(int callerId, ByteBuffer payload) {
         if (payload.remaining() < 2 * Integer.BYTES) {
@@ -119,7 +119,7 @@ public class AdminProcessor implements PacketProcessor {
 
     /*
      * RENAME_GROUP payload:
-     *   [type:int][groupId:int][titleLen:int][title:bytes]
+     *   [groupId:int][titleLen:int][title:bytes]
      */
     private void handleRenameGroup(int callerId, ByteBuffer payload) {
         if (payload.remaining() < Integer.BYTES) {
@@ -143,7 +143,7 @@ public class AdminProcessor implements PacketProcessor {
 
     /*
      * DELETE_GROUP payload:
-     *   [type:int][groupId:int]
+     *   [groupId:int]
      */
     private void handleDeleteGroup(int callerId, ByteBuffer payload) {
         if (payload.remaining() < Integer.BYTES) {

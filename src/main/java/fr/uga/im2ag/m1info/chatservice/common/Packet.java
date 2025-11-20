@@ -110,7 +110,7 @@ public class Packet {
         }
     }
 
-    // ORDER : payload length(4) - from(4) - to(4) - payload(size)
+    // ORDER : payload_size(4) - from(4) - to(4) - type(4) - payload(payload_size)
     private final ByteBuffer buffer;
 
 
