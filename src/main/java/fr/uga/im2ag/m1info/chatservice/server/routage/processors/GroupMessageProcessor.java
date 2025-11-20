@@ -29,7 +29,7 @@ public class GroupMessageProcessor implements PacketProcessor {
     @Override
     public void process(Packet pkt) {
         // Sanity check: this processor should only handle TEXT_GROUP packets
-        if (pkt.type() != PacketType.TEXT_GROUP) {
+        if (pkt.type() != PacketType.TEXT_GROUP.ordinal()) {
             throw new IllegalArgumentException(
                 "GroupMessageProcessor received non TEXT_GROUP packet, type=" + pkt.type()
             );

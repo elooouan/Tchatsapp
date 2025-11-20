@@ -14,7 +14,7 @@ import java.util.Map;
 public class PacketRouter {
     private PacketSender sender;
     private ServerState serverState;
-    private final Map<Integer, PacketProcessor> strategies;
+    private final Map<PacketType, PacketProcessor> strategies;
 
     StrategyContext context;
     // Envoie les paquets au bon processor
@@ -74,6 +74,7 @@ public class PacketRouter {
 
     public PacketProcessor resolve(Packet p) {
         int type = p.type();
-        return strategies.getOrDefault(type, new ErrorProcessor(context));
+        PacketType typeComparison = PacketType.convertIntToPacketType(type);
+        return strategies.getOrDefault(typeComparison, new ErrorProcessor(context));
     }
 }

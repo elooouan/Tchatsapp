@@ -29,23 +29,23 @@ public class AdminProcessor implements PacketProcessor {
 
         // Payload header [first byte of the payload] = PacketType.*
         // [PacketType: int][Rest of the payload...]
-        //int type = pkt.getType(); // type propre a venir
-        int type = payload.get(); // En attendant
+        int type = pkt.type();
+        PacketType typeComparison = PacketType.convertIntToPacketType(type);
 
-        switch (type) {
-            case PacketType.CREATE_GROUP:
+        switch (typeComparison) {
+            case CREATE_GROUP:
                 handleCreateGroup(pkt.from(), payload);
                 break;
-            case PacketType.ADD_MEMBER:
+            case ADD_MEMBER:
                 handleAddMember(pkt.from(), payload);
                 break;
-            case PacketType.REMOVE_MEMBER:
+            case REMOVE_MEMBER:
                 handleRemoveMember(pkt.from(), payload);
                 break;
-            case PacketType.RENAME_GROUP:
+            case RENAME_GROUP:
                 handleRenameGroup(pkt.from(), payload);
                 break;
-            case PacketType.DELETE_GROUP:
+            case DELETE_GROUP:
                 handleDeleteGroup(pkt.from(), payload);
                 break;
             default:

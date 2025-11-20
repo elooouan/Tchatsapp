@@ -11,6 +11,7 @@
 
 package fr.uga.im2ag.m1info.chatservice.client;
 
+import fr.uga.im2ag.m1info.chatservice.client.ihm.Window;
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 
 import java.io.*;
@@ -148,7 +149,6 @@ public class Client {
         Scanner sc = new Scanner(System.in);
         System.out.println("Votre id ? (0 pour en créer un nouveau)");
         int clientId =  sc.nextInt();
-
 
         Client c = new Client(clientId);
         c.setPacketProcessor(msg -> {

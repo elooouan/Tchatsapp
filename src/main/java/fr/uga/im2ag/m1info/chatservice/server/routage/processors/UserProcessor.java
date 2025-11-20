@@ -29,11 +29,13 @@ public class UserProcessor implements PacketProcessor {
 
         int type = pkt.type();
 
-        switch (type) {
-            case PacketType.SET_PSEUDO:
+        PacketType typeComparison = PacketType.convertIntToPacketType(type);
+
+        switch (typeComparison) {
+            case SET_PSEUDO:
                 handleSetPseudo(pkt.from(), payload);
                 break;
-            case PacketType.ADD_CONTACT:
+            case ADD_CONTACT:
                 handleAddContact(pkt.from(), payload);
                 break;
             case PacketType.CREATE_USER:
