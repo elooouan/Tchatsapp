@@ -8,8 +8,8 @@ import java.nio.ByteBuffer;
 import fr.uga.im2ag.m1info.chatservice.common.Group;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 import fr.uga.im2ag.m1info.chatservice.common.PacketType;
-import fr.uga.im2ag.m1info.chatservice.server.GroupRegistry;
-import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.registries.GroupRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.registries.UserRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
 /*

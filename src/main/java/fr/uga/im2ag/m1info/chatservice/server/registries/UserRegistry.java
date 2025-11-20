@@ -1,6 +1,7 @@
-package fr.uga.im2ag.m1info.chatservice.server;
+package fr.uga.im2ag.m1info.chatservice.server.registries;
 
 import fr.uga.im2ag.m1info.chatservice.common.User;
+import fr.uga.im2ag.m1info.chatservice.server.IdGenerator;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -8,7 +9,7 @@ import java.util.Map;
 
 public class UserRegistry implements Serializable {
     private Map<Integer,User> users = new HashMap<>();  //holds the corresponding Ids to Users
-    private IdGenerator idGenerator;                    
+    private IdGenerator idGenerator;
 
     private UserRegistry(){}
 

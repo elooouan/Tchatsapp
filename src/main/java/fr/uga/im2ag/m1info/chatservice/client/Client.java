@@ -11,7 +11,6 @@
 
 package fr.uga.im2ag.m1info.chatservice.client;
 
-import fr.uga.im2ag.m1info.chatservice.client.ihm.Window;
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 
 import java.io.*;

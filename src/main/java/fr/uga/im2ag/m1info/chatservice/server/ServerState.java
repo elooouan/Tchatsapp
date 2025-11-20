@@ -1,5 +1,9 @@
 package fr.uga.im2ag.m1info.chatservice.server;
 
+import fr.uga.im2ag.m1info.chatservice.server.registries.ContactRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.registries.GroupRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.registries.UserRegistry;
+
 import java.io.Serializable;
 
 public class ServerState implements Serializable {

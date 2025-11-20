@@ -1,4 +1,4 @@
-package fr.uga.im2ag.m1info.chatservice.server;
+package fr.uga.im2ag.m1info.chatservice.client.registries;
 
 import fr.uga.im2ag.m1info.chatservice.common.User;
 
