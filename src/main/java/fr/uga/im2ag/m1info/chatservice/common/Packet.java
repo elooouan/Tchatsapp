@@ -23,7 +23,7 @@ public class Packet {
 
     // private static final int OFFSET_LENGTH = 0;
     private static final int OFFSET_FROM = Integer.BYTES;
-    private static final int OFFSET_TO = 2 * Integer.BYTES;
+    private static final int OFFSET_TO   = 2 * Integer.BYTES;
     private static final int OFFSET_TYPE = 3 * Integer.BYTES;
     private final static int HEADER_SIZE = 4 * Integer.BYTES;
 

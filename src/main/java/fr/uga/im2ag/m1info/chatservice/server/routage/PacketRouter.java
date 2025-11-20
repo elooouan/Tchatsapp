@@ -42,36 +42,6 @@ public class PacketRouter {
         strategies.put(PacketType.ERROR,       error);
     }
 
-    /*
-    public void route(Packet pkt) {
-        PacketProcessor strategy;
-        int type = pkt.getType();
-
-        switch (type) {
-            // l'id est un id d'user
-            case PacketType.TEXT_USER:
-                strategy = new DirectMessageProcessor(sender, serverState);
-                // l'id est un id de groupe
-            case PacketType.TEXT_GROUP:
-                strategy = new GroupMessageProcessor(sender, serverState);
-            case PacketType.CREATE_GROUP:
-            case PacketType.ADD_MEMBER:
-            case PacketType.REMOVE_MEMBER:
-            case PacketType.RENAME_GROUP:
-            case PacketType.DELETE_GROUP:
-                strategy = new AdminProcessor(serverState);
-            case PacketType.SET_PSEUDO:
-            case PacketType.ADD_CONTACT:
-                strategy = new UserProcessor();
-            case PacketType.ERROR:
-            default:
-                // Meme pas de type correct dans le paquet, erreur interne, errorProcessor aussi ?
-                strategy = new ErrorProcessor(sender);
-        }
-        strategy.process(pkt);
-    }
-     */
-
     public PacketProcessor resolve(Packet p) {
         PacketType type = p.type();
         return strategies.getOrDefault(type, new ErrorProcessor(context));
