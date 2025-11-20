@@ -149,6 +149,13 @@ public class Packet {
         return buffer.duplicate().rewind();
     }
 
+    public String payloadAsString() {
+        ByteBuffer payload = getPayload().asReadOnlyBuffer();
+        payload.rewind();
+        byte[] bytes = new byte[payload.remaining()];
+        payload.get(bytes);
+        return new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+    }
 
     public static Packet readFrom(DataInputStream dis) throws IOException {
         int s = dis.readInt();
