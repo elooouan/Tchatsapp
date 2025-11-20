@@ -1,4 +1,4 @@
-package fr.uga.im2ag.m1info.chatservice.client.ihm;
+package ui.ihm;
 
 import javax.swing.*;
 import javax.swing.border.Border;

@@ -13,9 +13,13 @@ package fr.uga.im2ag.m1info.chatservice.client;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketType;
+import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
+
+import ui.ConsoleClientListener;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.Scanner;
 
 /**
@@ -26,7 +30,7 @@ public class Client {
 
     private int clientId;
     private Socket cnx;
-    private fr.uga.im2ag.m1info.chatservice.common.PacketProcessor processor;
+    private PacketProcessor processor;
     private static ClientState clientState;
 
     public Client() {
@@ -45,7 +49,7 @@ public class Client {
     public boolean connect(String host, int port) {
         if (cnx!=null && cnx.isConnected()) return false;
         try {
-            cnx = new Socket("localhost",1666);
+            cnx = new Socket(host,port);
             DataOutputStream dos = new DataOutputStream(cnx.getOutputStream());
             DataInputStream dis = new DataInputStream(cnx.getInputStream());
             dos.writeInt(clientId);
@@ -100,15 +104,17 @@ public class Client {
         } catch (IOException e) {/* ignored */}
     }
 
-    public boolean sendPacket(Packet m) {
-        //if (m.from()!=clientId) throw new RuntimeException("Message from field must be equals to clientId");
+    public boolean sendPacket(Packet pkt) {
         try {
             DataOutputStream dos = new DataOutputStream(cnx.getOutputStream());
-            dos.writeInt(m.payloadSize());
-            dos.writeInt(m.to());
-            byte[] msg = new byte[m.payloadSize()];
-            m.getPayload().get(msg);
-            dos.write(msg);
+
+            // Serialize the full packet exactly as PacketBuilder created it:
+            // [length][from][to][type][payload...]
+            ByteBuffer buf = pkt.asByteBuffer();
+            byte[] data = new byte[buf.remaining()];
+            buf.get(data);
+            dos.write(data);
+
             dos.flush();
             return true;
         } catch (IOException e) {
@@ -116,6 +122,8 @@ public class Client {
             return false;
         }
     }
+
+    
 
     private void loadData(){
         File stateFile = new File("clientData.ser");
@@ -158,11 +166,15 @@ public class Client {
         int clientId =  sc.nextInt();
 
         Client c = new Client(clientId);
-        c.setPacketProcessor(msg -> {
-            byte[] b = new byte[msg.getPayload().capacity()];
-            msg.getPayload().get(b);
-            System.out.println("Message from " + msg.from() + " to " + msg.to() + " : " + new String(b));
-        });
+
+        // UI listener
+        ConsoleClientListener ui = new ConsoleClientListener();
+
+        // Decoder that turns Packet -> calls to ui
+        IncomingPacketProcessor incoming = new IncomingPacketProcessor(ui);
+
+        // Tell Client to use it for incoming packets
+        c.setPacketProcessor(incoming);
 
         if (c.connect("localhost",1666)) {
 
