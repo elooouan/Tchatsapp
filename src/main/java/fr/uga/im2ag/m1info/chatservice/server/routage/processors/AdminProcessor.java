@@ -7,7 +7,6 @@ import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 
 public class AdminProcessor implements PacketProcessor {
     private StrategyContext context;
@@ -65,7 +64,7 @@ public class AdminProcessor implements PacketProcessor {
      *   [titleLen:int][title:bytes]
      */
     private void handleCreateGroup(int callerId, ByteBuffer payload) {
-        String title = readString(payload);
+        String title = context.readString(payload);
         if (title == null || title.isEmpty()) {
             throw new IllegalArgumentException("invalid CREATE_GROUP payload.");
         }
@@ -165,43 +164,5 @@ public class AdminProcessor implements PacketProcessor {
 
         groups.delete(groupeId);
         context.sendOk(groupeId, "Delete groupId " + groupeId);
-    }
-
-    /*
-     * SET_PSEUDO payload:
-     *   [type:int][pseudoLen:int][pseudo:bytes]
-     * The user whose pseudo is changed is callerId (pkt.from()).
-     */
-    private void handleSetPseudo(int callerId, ByteBuffer payload) {
-        String newPseudo = readString(payload);
-        if (newPseudo == null || newPseudo.isEmpty()) {
-            throw new IllegalArgumentException("Invalid SET_PSEUDO payload.");
-        }
-
-        // Safety net -> we still check it regardless just in case
-        if (!users.exists(callerId)) {
-            throw new IllegalArgumentException("Unknown callerid " + callerId);
-        }
-
-        users.setPseudo(callerId, newPseudo);
-        context.sendOk(callerId, "New pseudo set: " + newPseudo);
-    }
-
-    // ====================================================================
-    // Helpers (same as DirectMessageProcessor and GroupMessageProcessor)
-    // ====================================================================
-
-    // Helper to read bytes from the payload and convert them into a String
-    // [len:int][len bytes]
-    private String readString(ByteBuffer buf) {
-        if (buf.remaining() < Integer.BYTES) return null;
-
-        int len = buf.getInt(); // Consume [len:int]
-        if (len < 0 || buf.remaining() < len) return null;
-
-        byte[] data = new byte[len];
-        buf.get(data);
-        
-        return new String(data, StandardCharsets.UTF_8); // UTF-8 is the standard for network protocols (UTF-16 is used for java objects)
     }
 }
