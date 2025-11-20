@@ -62,12 +62,7 @@ public class AdminProcessor implements PacketProcessor {
 
     /*
      * CREATE_GROUP payload:
-<<<<<<< HEAD
      *   [titleLen:int][title:bytes]
-=======
-     *   [type:int][titleLen:int][title:bytes]
-     * The creator/admin is implicitly the callerId (pkt.from()).
->>>>>>> 698986aa3005e8007532232083b81ec28f00763e
      */
     private void handleCreateGroup(int callerId, ByteBuffer payload) {
         String title = readString(payload);
