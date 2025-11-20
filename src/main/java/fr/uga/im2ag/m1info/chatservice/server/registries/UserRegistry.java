@@ -23,9 +23,8 @@ public class UserRegistry implements Serializable {
     
     /* Called AFTER the server generates a userId with IdGenerator -> AdmindProcessor calls UserRegistry not the other way around */
     public int createUser(int userId) {
-        int id = idGenerator.generateId();
-        users.put(id, new User(userId, null));
-        return id;
+        users.put(userId, new User(userId, null));
+        return userId;
     }
 
     public User getUser(int userId) {

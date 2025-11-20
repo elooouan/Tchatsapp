@@ -12,6 +12,7 @@
 package fr.uga.im2ag.m1info.chatservice.client;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
+import fr.uga.im2ag.m1info.chatservice.common.PacketType;
 
 import java.io.*;
 import java.net.Socket;
@@ -119,9 +120,16 @@ public class Client {
     private void loadData(){
         File stateFile = new File("clientData.ser");
         if(!stateFile.exists()){
-            // TODO: send packet to server to get a new id
-            //clientState = new ClientState(id);
-            //return;
+
+            Packet idCreation = Packet.createPacket(0,0, PacketType.CREATE_USER,"");
+            sendPacket(idCreation);
+
+//            String msg = packet.getPayloadAsString();
+//            String[] parts = msg.split(" ");
+//            int id = Integer.parseInt(parts[2]);
+
+//            clientState = new ClientState(id);
+//            return;
         }
 
         try {
