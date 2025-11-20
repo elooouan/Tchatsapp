@@ -73,8 +73,7 @@ public class PacketRouter {
      */
 
     public PacketProcessor resolve(Packet p) {
-        int type = p.type();
-        PacketType typeComparison = PacketType.convertIntToPacketType(type);
-        return strategies.getOrDefault(typeComparison, new ErrorProcessor(context));
+        PacketType type = p.type();
+        return strategies.getOrDefault(type, new ErrorProcessor(context));
     }
 }

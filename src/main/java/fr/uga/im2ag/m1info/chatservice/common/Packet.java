@@ -126,8 +126,8 @@ public class Packet {
         return buffer.getInt(OFFSET_TO);
     }
 
-    public int type() {
-        return buffer.getInt(OFFSET_TYPE);
+    public PacketType type() {
+        return PacketType.convertIntToPacketType(buffer.getInt(OFFSET_TYPE));
     }
 
     public int payloadSize() {

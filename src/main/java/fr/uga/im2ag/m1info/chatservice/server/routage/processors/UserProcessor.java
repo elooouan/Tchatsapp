@@ -27,11 +27,9 @@ public class UserProcessor implements PacketProcessor {
             throw new IllegalArgumentException("Empty or invalid User payload.");
         }
 
-        int type = pkt.type();
+        PacketType type = pkt.type();
 
-        PacketType typeComparison = PacketType.convertIntToPacketType(type);
-
-        switch (typeComparison) {
+        switch (type) {
             case SET_PSEUDO:
                 handleSetPseudo(pkt.from(), payload);
                 break;

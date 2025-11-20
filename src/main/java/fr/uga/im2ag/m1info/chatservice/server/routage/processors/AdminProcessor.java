@@ -29,10 +29,9 @@ public class AdminProcessor implements PacketProcessor {
 
         // Payload header [first byte of the payload] = PacketType.*
         // [PacketType: int][Rest of the payload...]
-        int type = pkt.type();
-        PacketType typeComparison = PacketType.convertIntToPacketType(type);
+        PacketType type = pkt.type();
 
-        switch (typeComparison) {
+        switch (type) {
             case CREATE_GROUP:
                 handleCreateGroup(pkt.from(), payload);
                 break;
