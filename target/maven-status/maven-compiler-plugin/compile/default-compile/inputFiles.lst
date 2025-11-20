@@ -1,6 +1,12 @@
 /home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/Client.java
-/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/Client2.java
 /home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ClientState.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/IncomingPacketProcessor.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/ButtonContact.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/ButtonMessage.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/Chat.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/ChatWindow.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/ContactsList.java
+/home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/client/ihm/Window.java
 /home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/Group.java
 /home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/Packet.java
 /home/enzo/Desktop/M1/COO/grp_1-d/src/main/java/fr/uga/im2ag/m1info/chatservice/common/PacketProcessor.java

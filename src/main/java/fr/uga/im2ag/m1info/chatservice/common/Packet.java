@@ -22,54 +22,54 @@ import java.nio.ByteBuffer;
 public class Packet {
 
     // private static final int OFFSET_LENGTH = 0;
-    private static final int OFFSET_FROM   = Integer.BYTES;
-    private static final int OFFSET_TO     = 2 * Integer.BYTES;
-    private static final int OFFSET_TYPE   = 3 * Integer.BYTES;
-    private final static int HEADER_SIZE   = 4 * Integer.BYTES;
-
+    private static final int OFFSET_FROM = Integer.BYTES;
+    private static final int OFFSET_TO = 2 * Integer.BYTES;
+    private static final int OFFSET_TYPE = 3 * Integer.BYTES;
+    private final static int HEADER_SIZE = 4 * Integer.BYTES;
 
     /**
      * A builder for packets.
-     * */
+     *
+     */
     public static final class PacketBuilder {
 
         private ByteBuffer buf;
 
-        public PacketBuilder(int payloadSize,int from) {
-            buf = ByteBuffer.allocate(payloadSize+HEADER_SIZE);
+        public PacketBuilder(int payloadSize, int from) {
+            buf = ByteBuffer.allocate(payloadSize + HEADER_SIZE);
             buf.putInt(payloadSize);
             buf.putInt(from);
         }
 
 
-        public PacketBuilder(int dataSize,int from, int to) {
-            this(dataSize,from);
+        public PacketBuilder(int dataSize, int from, int to) {
+            this(dataSize, from);
             buf.putInt(to);
         }
 
-        public PacketBuilder(int dataSize,int from, int to, int type) {
-            this(dataSize,from,to);
+        public PacketBuilder(int dataSize, int from, int to, int type) {
+            this(dataSize, from, to);
             buf.putInt(type);
         }
 
-       public PacketBuilder setFrom(int from) {
-            buf.putInt(OFFSET_FROM,from);
+        public PacketBuilder setFrom(int from) {
+            buf.putInt(OFFSET_FROM, from);
             return this;
         }
 
         public PacketBuilder setTo(int to) {
-            buf.putInt(OFFSET_TO,to);
+            buf.putInt(OFFSET_TO, to);
             return this;
         }
 
         public PacketBuilder setType(int type) {
-            buf.putInt(OFFSET_TYPE,type);
+            buf.putInt(OFFSET_TYPE, type);
             return this;
         }
 
         public PacketBuilder setPayload(byte[] payload) {
-            if (payload.length<buf.capacity()-HEADER_SIZE) {
-                throw new IllegalArgumentException("payload is of length "+payload.length+" but payload is of length "+(buf.capacity()-HEADER_SIZE));
+            if (payload.length < buf.capacity() - HEADER_SIZE) {
+                throw new IllegalArgumentException("payload is of length " + payload.length + " but payload is of length " + (buf.capacity() - HEADER_SIZE));
             }
             buf.position(HEADER_SIZE);
             buf.put(payload);
@@ -77,33 +77,33 @@ public class Packet {
         }
 
         public boolean isReady() {
-            return buf!=null && !isCompleted();
+            return buf != null && !isCompleted();
         }
 
         public ByteBuffer getPayload() {
-            return  buf.slice(HEADER_SIZE,buf.capacity());
+            return buf.slice(HEADER_SIZE, buf.capacity());
         }
 
         public PacketBuilder fillFrom(ByteBuffer bf) {
-            if (buf==null) throw new IllegalStateException("reset method has to be called before");
-            int length = Math.min(buf.remaining(),bf.remaining());
-            buf.put(buf.position(),bf,bf.position(),length);
-            buf.position(buf.position()+length);
-            bf.position(bf.position()+length);
+            if (buf == null) throw new IllegalStateException("reset method has to be called before");
+            int length = Math.min(buf.remaining(), bf.remaining());
+            buf.put(buf.position(), bf, bf.position(), length);
+            buf.position(buf.position() + length);
+            bf.position(bf.position() + length);
             //return !buf.hasRemaining();
             return this;
         }
 
         public boolean isCompleted() {
-            if (buf==null) throw new IllegalStateException("reset method has to be called before");
+            if (buf == null) throw new IllegalStateException("reset method has to be called before");
             return !buf.hasRemaining();
         }
 
         public Packet build() {
             if (isCompleted()) {
                 buf.position(0);
-                Packet res=new Packet(buf);
-                buf=null;
+                Packet res = new Packet(buf);
+                buf = null;
                 return res;
             }
             throw new RuntimeException("Packet not finished..."); // could have computed automatically the size...
@@ -130,7 +130,6 @@ public class Packet {
         return buffer.getInt(OFFSET_TYPE);
     }
 
-
     public int payloadSize() {
         return buffer.getInt(0);
     }
@@ -153,66 +152,15 @@ public class Packet {
 
     public static Packet readFrom(DataInputStream dis) throws IOException {
         int s = dis.readInt();
-        ByteBuffer buf = ByteBuffer.allocate(s+HEADER_SIZE);
+        ByteBuffer buf = ByteBuffer.allocate(s + HEADER_SIZE);
         buf.putInt(s);
-        byte[] content=buf.array();
-        dis.readFully(content,4,content.length-4);
+        byte[] content = buf.array();
+        dis.readFully(content, 4, content.length - 4);
         return new Packet(buf);
     }
 
-    public static Packet createDirectTextMessagePacket(int from, int to, String content) {
+    public static Packet createPacket(int from, int to, String content, PacketType type) {
         byte[] payload = content.getBytes();
-        return  new PacketBuilder(payload.length,from,to,PacketType.TEXT_USER).setPayload(payload).build();
+        return new PacketBuilder(payload.length, from, to, type.ordinal()).setPayload(payload).build();
     }
-
-    public static Packet createGroupTextMessagePacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.TEXT_GROUP).setPayload(payload).build();
-    }
-
-    public static Packet createGroupCreationPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.CREATE_GROUP).setPayload(payload).build();
-    }
-
-    public static Packet createAddMemberPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.ADD_MEMBER).setPayload(payload).build();
-    }
-
-    public static Packet createRemoveMemberPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.REMOVE_MEMBER).setPayload(payload).build();
-    }
-
-    public static Packet createRenameGroupPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.RENAME_GROUP).setPayload(payload).build();
-    }
-
-    public static Packet createDeleteGroupPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.DELETE_GROUP).setPayload(payload).build();
-    }
-
-    public static Packet createSetPseudoPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.SET_PSEUDO).setPayload(payload).build();
-    }
-
-    public static Packet createAddContactPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.ADD_CONTACT).setPayload(payload).build();
-    }
-
-    public static Packet createNewUserPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.CREATE_USER).setPayload(payload).build();
-    }
-
-    public static Packet createErrorPacket(int from, int to, String content) {
-        byte[] payload = content.getBytes();
-        return new PacketBuilder(payload.length,from,to,PacketType.ERROR).setPayload(payload).build();
-    }
-
 }

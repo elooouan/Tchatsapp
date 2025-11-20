@@ -2,6 +2,7 @@ package fr.uga.im2ag.m1info.chatservice.server.routage.processors;
 
 import fr.uga.im2ag.m1info.chatservice.common.*;
 import fr.uga.im2ag.m1info.chatservice.server.ContactRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
@@ -28,12 +29,17 @@ public class UserProcessor implements PacketProcessor {
 
         int type = pkt.type();
 
-        switch (type) {
-            case PacketType.SET_PSEUDO:
+        PacketType typeComparison = PacketType.convertIntToPacketType(type);
+
+        switch (typeComparison) {
+            case SET_PSEUDO:
                 handleSetPseudo(pkt.from(), payload);
                 break;
-            case PacketType.ADD_CONTACT:
+            case ADD_CONTACT:
                 handleAddContact(pkt.from(), payload);
+                break;
+            case CREATE_USER:
+                handleCreateUser(pkt.from(), payload);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown user packet type: " + type);
@@ -82,5 +88,20 @@ public class UserProcessor implements PacketProcessor {
         contacts.addContact(caller, newContact);
         context.sendOk(callerId,
                 "New contactId " + contactId + " added to userId " + callerId + "'s contacts list");
+    }
+
+    private void handleCreateUser(int callerId, ByteBuffer payload) {
+        if (payload.remaining() < Integer.BYTES) {
+            throw new IllegalArgumentException("Invalid ADD_CONTACT payload.");
+        }
+
+        if (users.exists(callerId)) {
+            throw new IllegalArgumentException("This user already have an account");
+        }
+
+        // très moche, TODO passer le idGenerator en singleton
+        int id = users.createUser(context.serverState().getIdGenerator().generateId());
+        context.sendOk(callerId, "New user " + id + " created");
+
     }
 }

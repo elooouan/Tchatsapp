@@ -11,8 +11,8 @@
 
 package fr.uga.im2ag.m1info.chatservice.client;
 
+import fr.uga.im2ag.m1info.chatservice.client.ihm.Window;
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
-import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 
 import java.io.*;
 import java.net.Socket;
@@ -27,7 +27,7 @@ public class Client {
     private int clientId;
     private Socket cnx;
     private fr.uga.im2ag.m1info.chatservice.common.PacketProcessor processor;
-    private ClientState clientState;
+    private static ClientState clientState;
 
     public Client() {
         this(0);
@@ -140,12 +140,15 @@ public class Client {
 
     }
 
+    public static ClientState getClientState(){
+        return clientState;
+    }
+
     /** A bsic client in command line **/
     public static void main(String[] args) throws IOException, InterruptedException {
         Scanner sc = new Scanner(System.in);
         System.out.println("Votre id ? (0 pour en créer un nouveau)");
         int clientId =  sc.nextInt();
-
 
         Client c = new Client(clientId);
         c.setPacketProcessor(msg -> {

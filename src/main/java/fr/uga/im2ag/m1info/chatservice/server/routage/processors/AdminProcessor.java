@@ -2,10 +2,12 @@ package fr.uga.im2ag.m1info.chatservice.server.routage.processors;
 
 import fr.uga.im2ag.m1info.chatservice.common.*;
 import fr.uga.im2ag.m1info.chatservice.server.GroupRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class AdminProcessor implements PacketProcessor {
     private StrategyContext context;
@@ -26,22 +28,25 @@ public class AdminProcessor implements PacketProcessor {
             throw new IllegalArgumentException("Empty or invalid Admin payload.");
         }
 
+        // Payload header [first byte of the payload] = PacketType.*
+        // [PacketType: int][Rest of the payload...]
         int type = pkt.type();
+        PacketType typeComparison = PacketType.convertIntToPacketType(type);
 
-        switch (type) {
-            case PacketType.CREATE_GROUP:
+        switch (typeComparison) {
+            case CREATE_GROUP:
                 handleCreateGroup(pkt.from(), payload);
                 break;
-            case PacketType.ADD_MEMBER:
+            case ADD_MEMBER:
                 handleAddMember(pkt.from(), payload);
                 break;
-            case PacketType.REMOVE_MEMBER:
+            case REMOVE_MEMBER:
                 handleRemoveMember(pkt.from(), payload);
                 break;
-            case PacketType.RENAME_GROUP:
+            case RENAME_GROUP:
                 handleRenameGroup(pkt.from(), payload);
                 break;
-            case PacketType.DELETE_GROUP:
+            case DELETE_GROUP:
                 handleDeleteGroup(pkt.from(), payload);
                 break;
             default:
@@ -49,28 +54,38 @@ public class AdminProcessor implements PacketProcessor {
         }
     }
 
-    // ----------------------------------------------------------------
-    // Handlers (groups)
-    // ----------------------------------------------------------------
+    // ====================================================================
+    // Handlers
+    // ====================================================================
+
+    // At this point [type:int] has already been consumed 
 
     /*
      * CREATE_GROUP payload:
+<<<<<<< HEAD
      *   [titleLen:int][title:bytes]
+=======
+     *   [type:int][titleLen:int][title:bytes]
+     * The creator/admin is implicitly the callerId (pkt.from()).
+>>>>>>> 698986aa3005e8007532232083b81ec28f00763e
      */
     private void handleCreateGroup(int callerId, ByteBuffer payload) {
-        String title = context.readString(payload);
+        String title = readString(payload);
         if (title == null || title.isEmpty()) {
-            throw new IllegalArgumentException("Invalid CREATE_GROUP payload.");
+            throw new IllegalArgumentException("invalid CREATE_GROUP payload.");
         }
 
+        // We don't know how this could happen but we still handle this error just in case
         if (!users.exists(callerId)) {
-            throw new IllegalArgumentException("Unknown user " + callerId);
+            throw new IllegalArgumentException("unknown user " + callerId);
         }
 
+        // Create the group
         int groupId = groups.createGroup(title, callerId);
+        
         context.sendOk(callerId, "GROUP_CREATED with groupId: " + groupId);
     }
-
+    
     /*
      * ADD_MEMBER payload:
      *   [groupId:int][memberId:int]
@@ -80,7 +95,7 @@ public class AdminProcessor implements PacketProcessor {
             throw new IllegalArgumentException("Invalid ADD_MEMBER payload");
         }
 
-        int groupId  = payload.getInt();
+        int groupId = payload.getInt();
         int memberId = payload.getInt();
 
         if (!groups.exists(groupId)) {
@@ -92,8 +107,7 @@ public class AdminProcessor implements PacketProcessor {
         }
 
         groups.addMember(groupId, memberId);
-        context.sendOk(callerId,
-                "memberId " + memberId + " added to groupId " + groupId);
+        context.sendOk(callerId, "memberId " + memberId + " added to groupId " + groupId);
     }
 
     /*
@@ -105,7 +119,7 @@ public class AdminProcessor implements PacketProcessor {
             throw new IllegalArgumentException("Invalid REMOVE_MEMBER payload");
         }
 
-        int groupId  = payload.getInt();
+        int groupId = payload.getInt();
         int memberId = payload.getInt();
 
         if (!groups.exists(groupId)) {
@@ -113,8 +127,7 @@ public class AdminProcessor implements PacketProcessor {
         }
 
         groups.removeMember(groupId, memberId);
-        context.sendOk(callerId,
-                "memberId " + memberId + " removed from groupId " + groupId);
+        context.sendOk(memberId, "memberId " + memberId + " removed from groupId " + groupId);
     }
 
     /*
@@ -122,6 +135,7 @@ public class AdminProcessor implements PacketProcessor {
      *   [groupId:int][titleLen:int][title:bytes]
      */
     private void handleRenameGroup(int callerId, ByteBuffer payload) {
+        // We only need to check for a single byte -> groupeId, because the rest is handled by readString
         if (payload.remaining() < Integer.BYTES) {
             throw new IllegalArgumentException("Invalid RENAME_GROUP payload.");
         }
@@ -137,8 +151,7 @@ public class AdminProcessor implements PacketProcessor {
         }
 
         groups.rename(groupId, newTitle);
-        context.sendOk(callerId,
-                "groupId " + groupId + " has been renamed to " + newTitle);
+        context.sendOk(callerId, "groupId " + groupId + " has been renamed to " + newTitle);
     }
 
     /*
@@ -150,12 +163,50 @@ public class AdminProcessor implements PacketProcessor {
             throw new IllegalArgumentException("Invalid DELETE_GROUP payload.");
         }
 
-        int groupId = payload.getInt();
-        if (!groups.exists(groupId)) {
-            throw new IllegalArgumentException("Unknown groupId " + groupId);
+        int groupeId = payload.getInt();
+        if (!groups.exists(groupeId)) {
+            throw new IllegalArgumentException("Unknown groupId " + groupeId);
         }
 
-        groups.delete(groupId);
-        context.sendOk(callerId, "Deleted groupId " + groupId);
+        groups.delete(groupeId);
+        context.sendOk(groupeId, "Delete groupId " + groupeId);
+    }
+
+    /*
+     * SET_PSEUDO payload:
+     *   [type:int][pseudoLen:int][pseudo:bytes]
+     * The user whose pseudo is changed is callerId (pkt.from()).
+     */
+    private void handleSetPseudo(int callerId, ByteBuffer payload) {
+        String newPseudo = readString(payload);
+        if (newPseudo == null || newPseudo.isEmpty()) {
+            throw new IllegalArgumentException("Invalid SET_PSEUDO payload.");
+        }
+
+        // Safety net -> we still check it regardless just in case
+        if (!users.exists(callerId)) {
+            throw new IllegalArgumentException("Unknown callerid " + callerId);
+        }
+
+        users.setPseudo(callerId, newPseudo);
+        context.sendOk(callerId, "New pseudo set: " + newPseudo);
+    }
+
+    // ====================================================================
+    // Helpers (same as DirectMessageProcessor and GroupMessageProcessor)
+    // ====================================================================
+
+    // Helper to read bytes from the payload and convert them into a String
+    // [len:int][len bytes]
+    private String readString(ByteBuffer buf) {
+        if (buf.remaining() < Integer.BYTES) return null;
+
+        int len = buf.getInt(); // Consume [len:int]
+        if (len < 0 || buf.remaining() < len) return null;
+
+        byte[] data = new byte[len];
+        buf.get(data);
+        
+        return new String(data, StandardCharsets.UTF_8); // UTF-8 is the standard for network protocols (UTF-16 is used for java objects)
     }
 }

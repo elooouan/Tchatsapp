@@ -20,7 +20,7 @@ public class DirectMessageProcessor implements PacketProcessor {
     @Override
     public void process(Packet pkt) {
         // Sanity check: this processor should only handle TEXT_GROUP packets
-        if (pkt.type() != PacketType.TEXT_USER) {
+        if (pkt.type() != PacketType.TEXT_USER.ordinal()) {
             throw new IllegalArgumentException(
                 "DirectMessageProcessor received non TEXT_USER packet, type=" + pkt.type()
             );

@@ -132,3 +132,5 @@ replay_pid*
 
 terget/
 
+start_client.sh
+start_server.sh
