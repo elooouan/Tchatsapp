@@ -10,13 +10,11 @@ import java.nio.charset.StandardCharsets;
 /**
  * Processes packets received by the client from the server.
  * It decodes the payload and forwards "events" to a listener
- * (typically your UI / client model).
  */
 public class IncomingPacketProcessor implements PacketProcessor {
 
     /**
      * Callbacks for the client UI / model.
-     * Plug this into whatever you already have on the client side.
      */
     public interface Listener {
         void onDirectText(int fromUserId, String message);
@@ -38,7 +36,7 @@ public class IncomingPacketProcessor implements PacketProcessor {
 
         if (payload == null) {
             // No payload: treat as malformed / error
-            listener.onError("Recu paquet sans payload, type=" + type);
+            listener.onError("Received packet with no payload, type=" + type);
             return;
         }
 

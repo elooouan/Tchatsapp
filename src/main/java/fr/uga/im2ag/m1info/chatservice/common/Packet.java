@@ -159,7 +159,7 @@ public class Packet {
         return new Packet(buf);
     }
 
-    public static Packet createPacket(int from, int to, String content, PacketType type) {
+    public static Packet createPacket(int from, int to, PacketType type, String content) {
         byte[] payload = content.getBytes();
         return new PacketBuilder(payload.length, from, to, type.ordinal()).setPayload(payload).build();
     }

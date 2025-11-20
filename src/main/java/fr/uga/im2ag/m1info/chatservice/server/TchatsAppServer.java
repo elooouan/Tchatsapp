@@ -428,7 +428,7 @@ public class TchatsAppServer implements PacketSender {
         TchatsAppServer s =  new TchatsAppServer(port, workers);
         
         // Load persistent state (if any)
-         s.loadData();
+        s.loadData();
 
         // Save initial state (NEED TO IMPLEMENT)
         s.saveData();
