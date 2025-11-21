@@ -10,13 +10,14 @@ public class GroupRegistry implements Serializable {
     private Map<Integer, Group> groups = new HashMap<>();
     IdGenerator idGenerator;
 
-    // To make private
-    private GroupRegistry(){}
+    // No instances
+    private GroupRegistry() {}
 
     public GroupRegistry(IdGenerator idGenerator) {
         this.idGenerator = idGenerator;
     }
 
+    // Create a initially empty group only containing the admin
     public int createGroup(String title, int adminId){
         int groupId = idGenerator.generateId();
         groups.put(groupId, new Group(groupId, title, adminId)); // Adds the admin
@@ -32,6 +33,7 @@ public class GroupRegistry implements Serializable {
         Group g = groups.get(groupId);
         return g != null && g.getAdminId() == userId;
     }
+
 
     public Set<Integer> membersOf(int groupId) {
         Group g = groups.get(groupId);

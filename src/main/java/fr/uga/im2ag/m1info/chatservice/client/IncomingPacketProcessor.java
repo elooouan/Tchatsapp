@@ -41,6 +41,7 @@ public class IncomingPacketProcessor implements PacketProcessor {
             return;
         }
 
+        // Works with certain java versions -> double check before running
         switch (type) {
             case TEXT_USER -> handleDirectText(pkt, payload);
             case TEXT_GROUP -> handleGroupText(pkt, payload);
