@@ -79,8 +79,7 @@ public class AdminProcessor implements PacketProcessor {
         context.sendOk(adminId, "GROUP_CREATED with groupId: " + g.getId());
 
         // Broadcast to all members of the group -> for them to update their Group Registries
-        byte[] snapshot = createGroupSnapshot(g);
-        broadcastGroupCreated(g, snapshot);
+        broadcastGroupCreated(g);
     }
     
 
@@ -112,7 +111,8 @@ public class AdminProcessor implements PacketProcessor {
      * Broadcast the Group creation to every member of the newly created group
      * Used to update the members GroupRegistry
      */
-    private void broadcastGroupCreated(Group g, byte[] payload) {
+    private void broadcastGroupCreated(Group g) {
+        byte[] payload = createGroupSnapshot(g);
         // For each member of the group, send them a snapshot of all the current group members
         for (int memberId : g.getMembers()) {
             context.send(
@@ -126,9 +126,7 @@ public class AdminProcessor implements PacketProcessor {
      *   [groupId:int][memberId:int]
      */
     private void handleAddMember(int adminId, ByteBuffer payload) {
-        if (payload.remaining() < 2 * Integer.BYTES) {
-            context.sendError(adminId, "Invalid ADD_MEMBER payload");
-        }
+        if (payload.remaining() < 2 * Integer.BYTES) { context.sendError(adminId, "Invalid ADD_MEMBER payload"); }
 
         int groupId = payload.getInt();
         int memberId = payload.getInt();
@@ -138,8 +136,50 @@ public class AdminProcessor implements PacketProcessor {
         if (!users.exists(memberId)) { context.sendError(adminId, "Unknown memberId: " + memberId); return; }
         if (!groups.isAdmin(groupId, adminId)) { context.sendError(adminId, "Can't add member, you are not the admin: " + adminId); return; }
 
-        groups.addMember(groupId, memberId);
+        Group g = groups.getGroupById(groupId);
+        
+        if (g == null) { context.sendError(adminId, "Unknown Group."); return; }
+        if (!g.addMember(memberId)) { context.sendError(adminId, "User already in group"); return; }
+
+        // Send "silent" ACK to admin
         context.sendOk(adminId, "memberId " + memberId + " added to groupId " + groupId);
+
+        // Broadcast added member to rest of group
+        broadcastMemberAdded(g, memberId);
+    }
+
+
+    /*
+     * Broadcast the added member to every member of the newly created group EXCEPT the added member himself
+     * The added member receives a group snapshot
+     * Used to update the members GroupRegistry
+     */
+    public void broadcastMemberAdded(Group g, int addedMember) {
+
+        // addedMember's payload creation + send
+        byte[] addedMemberPayload = createGroupSnapshot(g);
+
+        context.send(
+            Packet.createPacket(0, addedMember, PacketType.GROUP_EVENT, addedMemberPayload)
+        );
+
+
+        // "Old" group members (already there before addedMember)
+        // Payload format: [subType(MEMBER_ADDED):1 byte][groupId:int][addedMember:int]
+        ByteBuffer buf = ByteBuffer.allocate(1 + Integer.BYTES * 2);
+        
+        buf.put(GroupEventType.MEMBER_ADDED);
+        buf.putInt(g.getId());
+        buf.putInt(addedMember);
+
+        byte[] oldMemberPayload = buf.array();
+
+        for (int member : g.getMembers()) {
+            if (member == addedMember) continue;
+            context.send(
+                Packet.createPacket(0, member, PacketType.GROUP_EVENT, oldMemberPayload)
+            );
+        }
     }
 
     /*
