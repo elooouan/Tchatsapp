@@ -29,15 +29,14 @@ public class DirectMessageProcessor implements PacketProcessor {
         int from = pkt.from(); // a fix avec une structure meilleure
         int to = pkt.to();
 
-        // Safety net
-        if (!users.exists(from)) {
-            throw new IllegalArgumentException("Unknown sender: " + from);
-        }
-
-        // Safety net: Server should have already checked this 
-        if (!users.exists(to)) {
-            throw new IllegalArgumentException("Unknown recipient: " + to);
-        }
+        // TEMP: disable these for now
+        // if (!users.exists(from)) {
+        //     throw new IllegalArgumentException("Unknown sender: " + from);
+        // }
+        //
+        // if (!users.exists(to)) {
+        //     throw new IllegalArgumentException("Unknown recipient: " + to);
+        // }
 
         ByteBuffer payload = pkt.getPayload();
         if (payload == null || payload.remaining() == 0) {

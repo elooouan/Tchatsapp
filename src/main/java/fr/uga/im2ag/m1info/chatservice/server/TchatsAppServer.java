@@ -312,7 +312,7 @@ public class TchatsAppServer implements PacketSender {
                             return;
                         }
                         //state.currentMsg = new Message.MessageBuilder(msgLength, state.clientId);
-                        state.currentPacket = new Packet.PacketBuilder(msgLength,state.clientId);
+                        state.currentPacket = new Packet.PacketBuilder(msgLength); // Use the incoming PacketBuilder
                         LOG.info("packet length from client " + state.clientId + " = " + msgLength);
                         // read the message content
                     }
@@ -326,13 +326,16 @@ public class TchatsAppServer implements PacketSender {
                                 PacketRouter router = new PacketRouter(context);
                                 PacketProcessor s;
                                 try {
-                                    s = router.resolve(msg); // choix de la stratégie
+                                    s = router.resolve(msg);
+                                    s.process(msg);
                                 } catch (RuntimeException err) {
-                                    s = new ErrorProcessor(context); // si une erreur trouvée, erreur
-                                    ((ErrorProcessor) s).setError(err.getMessage());
+                                    err.printStackTrace(); // TEMP: see what's going on
+                                    PacketProcessor errProc = new ErrorProcessor(context);
+                                    ((ErrorProcessor) errProc).setError(err.getMessage());
+                                    errProc.process(msg);
                                 }
-                                s.process(msg);
                             });
+                            
                             LOG.info("packet read from client " + state.clientId);
                         }
                     }

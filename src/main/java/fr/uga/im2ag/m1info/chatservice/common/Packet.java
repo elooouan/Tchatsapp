@@ -35,12 +35,26 @@ public class Packet {
 
         private ByteBuffer buf;
 
+        // Incoming Packets
+
+        public PacketBuilder(int payloadSize) {
+            // Used when reconstructing a packet from the network:
+            // we already read the length, now we need to read:
+            // [from][to][type][payload...]
+            buf = ByteBuffer.allocate(payloadSize + HEADER_SIZE);
+            buf.putInt(payloadSize); // write the length at offset 0
+            // position is now 4; the remaining bytes (HEADER_SIZE - 4 + payloadSize)
+            // will be filled via fillFrom(...)
+        }
+        
+
+        // Outgoing packets
+
         public PacketBuilder(int payloadSize, int from) {
             buf = ByteBuffer.allocate(payloadSize + HEADER_SIZE);
             buf.putInt(payloadSize);
             buf.putInt(from);
         }
-
 
         public PacketBuilder(int dataSize, int from, int to) {
             this(dataSize, from);
