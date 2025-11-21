@@ -96,9 +96,7 @@ public class UserProcessor implements PacketProcessor {
             throw new IllegalArgumentException("This user already have an account");
         }
 
-        // très moche, TODO passer le idGenerator en singleton
         int id = users.createUser(context.serverState().getIdGenerator().generateId());
         context.sendOk(callerId, "New user " + id + " created");
-
     }
 }

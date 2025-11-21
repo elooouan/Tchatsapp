@@ -14,6 +14,7 @@ package fr.uga.im2ag.m1info.chatservice.server;
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
+import fr.uga.im2ag.m1info.chatservice.common.PacketType;
 import fr.uga.im2ag.m1info.chatservice.server.routage.PacketRouter;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 import fr.uga.im2ag.m1info.chatservice.server.routage.processors.ErrorProcessor;
@@ -281,10 +282,17 @@ public class TchatsAppServer implements PacketSender {
                         state.clientId=clientId;
                         state.identified=true;
 
-                        // send an empty packet to indicate successful identification
-                        // and by the way send the id to new client (in the to field)
-                       // use directly write because it has to be send before any element from the queue
-                        //sc.write(Packet.createEmptyPacket(0,clientId).asByteBuffer());
+                        // send a small handshake packet so the client can learn its id
+                        // payload size = 0, from = 0, to = clientId, type = anything (not used by client)
+                        Packet handshake = new Packet.PacketBuilder(
+                                0,                    // payload size
+                                0,                    // from (server)
+                                state.clientId,       // to (client id)
+                                PacketType.CREATE_USER.ordinal()  // type (arbitrary here)
+                        ).build();
+
+                        // send it immediately on this channel (before using the queue)
+                        sc.write(handshake.asByteBuffer());
 
                         // enventually send messages in the queue
                         wakeupSendQueue(state.channel);

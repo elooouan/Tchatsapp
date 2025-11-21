@@ -17,7 +17,8 @@ public class PacketRouter {
     private final Map<PacketType, PacketProcessor> strategies;
 
     StrategyContext context;
-    // Envoie les paquets au bon processor
+
+    // Send packets to the correct processor
     public PacketRouter(StrategyContext context) {
         this.context = context;
         strategies = new HashMap<>();
