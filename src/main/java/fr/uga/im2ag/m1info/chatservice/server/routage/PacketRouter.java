@@ -1,7 +1,6 @@
 package fr.uga.im2ag.m1info.chatservice.server.routage;
 
 import fr.uga.im2ag.m1info.chatservice.common.*;
-import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.routage.processors.*;
 
 import java.util.HashMap;
@@ -12,8 +11,6 @@ import java.util.Map;
  */
 
 public class PacketRouter {
-    private PacketSender sender;
-    private ServerState serverState;
     private final Map<PacketType, PacketProcessor> strategies;
 
     StrategyContext context;
