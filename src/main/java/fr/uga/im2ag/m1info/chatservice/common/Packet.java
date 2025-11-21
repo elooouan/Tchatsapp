@@ -184,4 +184,8 @@ public class Packet {
         byte[] payload = content.getBytes();
         return new PacketBuilder(payload.length, from, to, type.ordinal()).setPayload(payload).build();
     }
+
+    public static Packet createPacket(int from, int to, PacketType type, byte[] content){
+        return new PacketBuilder(content.length, from, to, type.ordinal()).setPayload(content).build();
+    }
 }
