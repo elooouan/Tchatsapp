@@ -15,7 +15,8 @@ import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketType;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 
-import ui.ConsoleClientListener;
+import fr.uga.im2ag.m1info.chatservice.ui.ConsoleClientListener;
+import fr.uga.im2ag.m1info.chatservice.ui.CommandParser;
 
 import java.io.*;
 import java.net.Socket;
@@ -123,8 +124,6 @@ public class Client {
         }
     }
 
-    
-
     private void loadData(){
         File stateFile = new File("clientData.ser");
         if(!stateFile.exists()){
@@ -160,43 +159,47 @@ public class Client {
     }
 
     /** A bsic client in command line **/
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Votre id ? (0 pour en créer un nouveau)");
-        int clientId =  sc.nextInt();
-
+        System.out.println("Your id ? (0 to create a new account)");
+        int clientId = sc.nextInt();
+        sc.nextLine(); // consume end of line
+    
+        // Low-level TCP client
         Client c = new Client(clientId);
-
-        // UI listener
+    
+        // UI listener for incoming events
         ConsoleClientListener ui = new ConsoleClientListener();
-
-        // Decoder that turns Packet -> calls to ui
-        IncomingPacketProcessor incoming = new IncomingPacketProcessor(ui);
-
-        // Tell Client to use it for incoming packets
-        c.setPacketProcessor(incoming);
-
-        if (c.connect("localhost",1666)) {
-
+    
+        // High-level API (outgoing + incoming decoding)
+        ClientAPI api = new ClientAPI(
+                c::sendPacket,   // PacketSender -> use Client.sendPacket
+                clientId,
+                ui               // IncomingPacketProcessor.Listener
+        );
+    
+        // Tell Client to forward incoming packets to ClientAPI
+        c.setPacketProcessor(api::handleIncoming);
+    
+        // Connect
+        if (c.connect("localhost", 1666)) {
+            // Server may assign a new id
             clientId = c.getClientId();
-            System.out.println("Vous êtes connecté avec l'id " + clientId);
-           // Packet m = Packet.createTextMessage(48, 2, "coucou 2 comment vas tu ?");
-
-            //c.sendPacket(m);
-
-            while (true) {
-                System.out.println("A qui envoyer ? (0 pour quitter)");
-                int to = sc.nextInt();sc.nextLine();
-                if (to==0) break;
-                System.out.println("Votre message :");
-                String msg = sc.nextLine();
-                //c.sendPacket(Packet.createTextMessage(c.getClientId(), to, msg));
-            }
+            api.setClientId(clientId);
+    
+            System.out.println("You are now connected with id: " + clientId);
+            System.out.println("Type /help for the list of commands.");
+    
+            // Command parser loop
+            CommandParser parser = new CommandParser(api, sc);
+            parser.run();
+    
             c.disconnect();
             System.exit(0);
+        } else {
+            System.err.println("Connection failed.");
         }
-
     }
-
+    
 
 }
