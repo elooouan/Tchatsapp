@@ -4,13 +4,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
-// import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
-
+import fr.uga.im2ag.m1info.chatservice.common.PacketType;
 import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.TchatsAppServer;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 
 public class StrategyContext {
     private final TchatsAppServer server;
@@ -26,7 +22,7 @@ public class StrategyContext {
     }
 
     public void send(Packet p) {
-        // Envoyer des paquets aux users
+        // Send packet to users
         server.sendPacket(p);
     }
 
@@ -42,12 +38,28 @@ public class StrategyContext {
         return new String(data, StandardCharsets.UTF_8);
     }
 
-    public void sendOk(int cible, String message) {
-        //Packet ack = Packet.createAck(msg.to(), msg.from(), message);
-        //server.sendPacket(ack);
-        System.out.println("ACK");
+    public void sendOk(int destId, String message) {
+        Packet ack = Packet.createPacket(
+            0,
+            destId,
+            PacketType.ACK,
+            message
+        );
+
+        server.sendPacket(ack);
     }
 
+    public void sendError(int destId, String message) {
+        Packet error = Packet.createPacket(
+            0,
+            destId,
+            PacketType.ERROR,
+            message
+        );
+        
+        server.sendPacket(error);
+    }
+    
     public ServerState serverState() {
         return TchatsAppServer.getServerState();
     }

@@ -14,8 +14,8 @@ public class ServerState implements Serializable {
     private PacketMissingRegistry packetMissingRegistry;
     private IdGenerator idGenerator;
 
-    private class IdIntGenerator implements Serializable,IdGenerator {
-        int id = 0;
+    private class IdIntGenerator implements IdGenerator {
+        int id = 1; // id 0 is reserved for the server
 
         @Override
         public synchronized int generateId() {
@@ -23,13 +23,12 @@ public class ServerState implements Serializable {
         }
     }
 
-    public ServerState(){
+    public ServerState() {
         idGenerator = new IdIntGenerator();
         userRegistry = new UserRegistry(idGenerator);
         groupRegistry = new GroupRegistry(idGenerator);
         packetMissingRegistry = new PacketMissingRegistry();
         contactRegistry = new ContactRegistry();
-
     }
 
     public ContactRegistry getContactRegistry() {

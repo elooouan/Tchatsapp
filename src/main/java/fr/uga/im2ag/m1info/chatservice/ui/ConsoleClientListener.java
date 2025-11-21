@@ -20,6 +20,11 @@ public class ConsoleClientListener implements IncomingPacketProcessor.Listener {
     }
 
     @Override
+    public void onACK(String message) {
+        System.err.println("[ACK] " + message);
+    }
+
+    @Override
     public void onError(String message) {
         System.err.println("[ERROR] " + message);
     }

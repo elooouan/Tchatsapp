@@ -10,7 +10,7 @@ public class GroupRegistry implements Serializable {
     private Map<Integer, Group> groups = new HashMap<>();
     IdGenerator idGenerator;
 
-
+    // To make private
     private GroupRegistry(){}
 
     public GroupRegistry(IdGenerator idGenerator) {
@@ -28,14 +28,19 @@ public class GroupRegistry implements Serializable {
 
     public Group getGroupById(Integer groupId) { return groups.get(groupId); }
 
-    public boolean isAdmin(int groupId, int userId){
+    public boolean isAdmin(int groupId, int userId) {
         Group g = groups.get(groupId);
         return g != null && g.getAdminId() == userId;
     }
 
-    public Set<Integer> membersOf(int groupId){
+    public Set<Integer> membersOf(int groupId) {
         Group g = groups.get(groupId);
         return g == null ? Collections.emptySet() : g.getMembers();
+    }
+
+    public boolean hasMember(int groupId, int userId) {
+        Group g = groups.get(groupId);
+        return g.hasMember(userId);
     }
 
     public boolean addMember(int groupId, int userId){

@@ -15,9 +15,9 @@ import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
 import fr.uga.im2ag.m1info.chatservice.common.PacketType;
+import fr.uga.im2ag.m1info.chatservice.server.registries.UserRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.routage.PacketRouter;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
-import fr.uga.im2ag.m1info.chatservice.server.routage.processors.ErrorProcessor;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -122,13 +122,15 @@ public class TchatsAppServer implements PacketSender {
      * @throws IOException
      */
     public TchatsAppServer(int port, int workerThreads) throws IOException {
+        // Load persistent state (if any)
+        loadData();
         this.selector = Selector.open();
         ServerSocketChannel serverChannel = ServerSocketChannel.open();
         serverChannel.bind(new InetSocketAddress(port));
         serverChannel.configureBlocking(false);
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
         this.workers = Executors.newFixedThreadPool(workerThreads);
-        setClientIdGenerator(new AtomicInteger(1)::getAndIncrement); // by default, clients id are generated using a sequence (use atomic integer for concurrency)
+        setClientIdGenerator(serverState.getIdGenerator());
         //setPacketProcessor(this::sendPacket); // by default, forward the message to the recipient (works only for client to client, but not for groups)
         LOG.info("Server started on port " + port + " with " + workerThreads + " workers");
 
@@ -263,9 +265,19 @@ public class TchatsAppServer implements PacketSender {
                     if (!state.identified) {
                         if (buf.remaining() < Integer.BYTES) break loop;
                         int clientId = buf.getInt();
-                        if (clientId==0) { // new client
+                        // NEW CLIENT
+                        if (clientId==0) {
                             clientId=idGenerator.generateId(); // use a generator for new id
                             clientQueues.put(clientId,new ConcurrentLinkedQueue<>());
+
+                            ServerState ss = TchatsAppServer.getServerState();
+                            if (ss != null) {
+                                UserRegistry users = ss.getUserRegistry();
+                                if (!users.exists(clientId)) {
+                                    users.createUser(clientId);
+                                    LOG.info("Client: " + clientId + " added to registry.");
+                                }
+                            }
                         }
                         else if (!clientQueues.containsKey(clientId)) {
                             LOG.info("Client "+clientId+" is not registered. Closing connexion.");
@@ -329,10 +341,11 @@ public class TchatsAppServer implements PacketSender {
                                     s = router.resolve(msg);
                                     s.process(msg);
                                 } catch (RuntimeException err) {
-                                    err.printStackTrace(); // TEMP: see what's going on
-                                    PacketProcessor errProc = new ErrorProcessor(context);
-                                    ((ErrorProcessor) errProc).setError(err.getMessage());
-                                    errProc.process(msg);
+                                    err.printStackTrace(); // TEMP: see what's going on | Debugging
+                                    context.sendError(msg.from(), "Router could not resolve packet type: " + msg.type());
+                                    // PacketProcessor errProc = new ErrorProcessor(context);
+                                    // ((ErrorProcessor) errProc).setError(err.getMessage());
+                                    // errProc.process(msg);
                                 }
                             });
                             
@@ -437,9 +450,6 @@ public class TchatsAppServer implements PacketSender {
 
         // Create server
         TchatsAppServer s =  new TchatsAppServer(port, workers);
-        
-        // Load persistent state (if any)
-        s.loadData();
 
         // Save initial state (NEED TO IMPLEMENT)
         s.saveData();

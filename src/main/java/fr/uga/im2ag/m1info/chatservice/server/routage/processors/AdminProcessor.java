@@ -90,13 +90,10 @@ public class AdminProcessor implements PacketProcessor {
         int groupId = payload.getInt();
         int memberId = payload.getInt();
 
-        if (!groups.exists(groupId)) {
-            throw new IllegalArgumentException("Unknown groupId: " + groupId);
-        }
-
-        if (!users.exists(memberId)) {
-            throw new IllegalArgumentException("Unknown memberId: " + memberId);
-        }
+        if (groups.exists(groupId) && !groups.hasMember(groupId, callerId)) { context.sendError(callerId, "You are not in this group "); return; }
+        if (!groups.exists(groupId)) { context.sendError(callerId, "Unknown groupId: " + groupId); return; }
+        if (!users.exists(memberId)) { context.sendError(callerId, "Unknown memberId: " + memberId); return; }
+        if (!groups.isAdmin(groupId, callerId)) { context.sendError(callerId, "Can't add member, you are not the admin: " + callerId); return; }
 
         groups.addMember(groupId, memberId);
         context.sendOk(callerId, "memberId " + memberId + " added to groupId " + groupId);
@@ -114,9 +111,9 @@ public class AdminProcessor implements PacketProcessor {
         int groupId = payload.getInt();
         int memberId = payload.getInt();
 
-        if (!groups.exists(groupId)) {
-            throw new IllegalArgumentException("Unknown group " + groupId);
-        }
+        if (!groups.exists(groupId)) { context.sendError(callerId, "Unknown groupId: " + groupId); return; }
+        if (!groups.hasMember(groupId, memberId)) { context.sendError(callerId, "Member " + memberId + " not in group " + groupId); return; }
+        if (!groups.isAdmin(groupId, callerId)) { context.sendError(callerId, "Can't add member, you are not the admin"); return; }
 
         groups.removeMember(groupId, memberId);
         context.sendOk(memberId, "memberId " + memberId + " removed from groupId " + groupId);

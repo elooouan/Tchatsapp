@@ -11,7 +11,8 @@ public enum PacketType {
     SET_PSEUDO, // UserProcessor
     ADD_CONTACT, // UserProcessor
     CREATE_USER, // UserProcessor
-    ERROR; // Simple reply (ex: sendError...)
+    ACK,
+    ERROR;
 
     static public PacketType convertIntToPacketType(int type){
         return PacketType.values()[type];

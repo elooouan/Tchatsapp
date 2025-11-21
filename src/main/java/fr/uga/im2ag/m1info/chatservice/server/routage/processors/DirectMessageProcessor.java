@@ -30,13 +30,13 @@ public class DirectMessageProcessor implements PacketProcessor {
         int to = pkt.to();
 
         // TEMP: disable these for now
-        // if (!users.exists(from)) {
-        //     throw new IllegalArgumentException("Unknown sender: " + from);
-        // }
-        //
-        // if (!users.exists(to)) {
-        //     throw new IllegalArgumentException("Unknown recipient: " + to);
-        // }
+        if (!users.exists(from)) {
+            throw new IllegalArgumentException("Unknown sender: " + from);
+        }
+        
+        if (!users.exists(to)) {
+            throw new IllegalArgumentException("Unknown recipient: " + to);
+        }
 
         ByteBuffer payload = pkt.getPayload();
         if (payload == null || payload.remaining() == 0) {

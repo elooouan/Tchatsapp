@@ -25,7 +25,6 @@ public class PacketRouter {
 
         AdminProcessor admin = new AdminProcessor(context);
         UserProcessor user = new UserProcessor(context);
-        ErrorProcessor error = new ErrorProcessor(context);
 
         strategies.put(PacketType.TEXT_USER,   new DirectMessageProcessor(context));
         strategies.put(PacketType.TEXT_GROUP,  new GroupMessageProcessor(context));
@@ -39,12 +38,12 @@ public class PacketRouter {
         strategies.put(PacketType.SET_PSEUDO,  user);
         strategies.put(PacketType.ADD_CONTACT, user);
         strategies.put(PacketType.CREATE_USER, user);
-
-        strategies.put(PacketType.ERROR,       error);
     }
 
     public PacketProcessor resolve(Packet p) {
         PacketType type = p.type();
-        return strategies.getOrDefault(type, new ErrorProcessor(context));
+        
+        // Might need error handling -> UnknownPacketTypeProcessor
+        return strategies.get(type);
     }
 }
