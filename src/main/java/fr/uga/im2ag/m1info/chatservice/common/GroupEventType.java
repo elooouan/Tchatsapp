@@ -5,6 +5,7 @@ public final class GroupEventType {
     public static final byte MEMBER_REMOVED = 2;
     public static final byte RENAMED        = 3;
     public static final byte DELETED        = 4;
+    public static final byte CREATED        = 5;
 
     // No instance possible
     private GroupEventType() {

@@ -6,7 +6,6 @@ import fr.uga.im2ag.m1info.chatservice.server.registries.UserRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class AdminProcessor implements PacketProcessor {
@@ -50,7 +49,7 @@ public class AdminProcessor implements PacketProcessor {
 
     /*
      * CREATE_GROUP payload:
-     *   [titleLen:int][title:bytes]
+     *   [subType(CREATED):1 byte][titleLen:int][title:bytes][memberCount:int][memberId1:int]...[memberIdCount:int]
      */
     private void handleCreateGroup(int adminId, ByteBuffer payload) {
         // Handle this error just in case
@@ -61,41 +60,74 @@ public class AdminProcessor implements PacketProcessor {
             throw new IllegalArgumentException("invalid CREATE_GROUP payload.");
         }
 
-        // Create the group
-        int groupId = groups.createGroup(title, adminId);
+        // Get the number of members to add to the group
+        int memberCount = payload.getInt();
+
+        Set<Integer> memberIds = new HashSet<>();
         
+        // Loop over the payload and if the user exists, add them to the group
+        for (int i = 0; i < memberCount; i++) {
+            int memberId = payload.getInt();
+            if (!users.exists(memberId)); 
+            memberIds.add(memberId);
+        }
+        
+        // Create the group
+        Group g = groups.createGroup(title, adminId, memberIds);
+
         // ACK to admin -> just for the admin to know the group creation was successful
-        context.sendOk(adminId, "GROUP_CREATED with groupId: " + groupId);
+        context.sendOk(adminId, "GROUP_CREATED with groupId: " + g.getId());
 
-        // Response packet creation
-        int payloadSize = title.length() + Integer.BYTES;
-        byte[] titleBytes = title.getBytes(StandardCharsets.UTF_8);
-        ByteBuffer buf = ByteBuffer.allocate(payloadSize);
-
-        // Payload format : [groupId:int][title:bytes][]
-        buf.putInt(groupId);
-        buf.put(titleBytes);
-
-        // Created packet
-        Packet pkt = Packet.createPacket(
-            0,
-            adminId,
-            PacketType.CREATE_GROUP,
-            buf.array()
-        );
-
-        context.send(pkt);
+        // Broadcast to all members of the group -> for them to update their Group Registries
+        byte[] snapshot = createGroupSnapshot(g);
+        broadcastGroupCreated(g, snapshot);
     }
     
 
-    
+    /**
+     * Create a group snapshot and creates the corresponding packet payload -> byte[]
+     */
+    private byte[] createGroupSnapshot(Group g) {
+        Set<Integer> memberIds = g.getMembers();
+        String title = g.getTitle();
+        
+        // Allocate payload
+        ByteBuffer buf = ByteBuffer.allocate(
+            1 + Integer.BYTES +
+            title.length() + Integer.BYTES +
+            memberIds.size() * Integer.BYTES
+        );
+
+        // Build payload
+        buf.put(GroupEventType.CREATED); // subtype
+        buf.putInt(title.length());
+        buf.put(title.getBytes());
+        buf.putInt(memberIds.size());
+        for (int member : memberIds) buf.putInt(member);
+
+        return buf.array();
+    }
+
+    /*
+     * Broadcast the Group creation to every member of the newly created group
+     * Used to update the members GroupRegistry
+     */
+    private void broadcastGroupCreated(Group g, byte[] payload) {
+        // For each member of the group, send them a snapshot of all the current group members
+        for (int memberId : g.getMembers()) {
+            context.send(
+                Packet.createPacket(0, memberId, PacketType.GROUP_EVENT, payload)
+            );
+        }
+    }
+
     /*
      * ADD_MEMBER payload:
      *   [groupId:int][memberId:int]
      */
     private void handleAddMember(int adminId, ByteBuffer payload) {
         if (payload.remaining() < 2 * Integer.BYTES) {
-            throw new IllegalArgumentException("Invalid ADD_MEMBER payload");
+            context.sendError(adminId, "Invalid ADD_MEMBER payload");
         }
 
         int groupId = payload.getInt();

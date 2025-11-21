@@ -25,6 +25,18 @@ public class GroupRegistry implements Serializable {
         return groupId;
     }
 
+    // Create a group initially comprised of a list of members
+    public Group createGroup(String title, int adminId, Set<Integer> membersId) {
+        int groupId = idGenerator.generateId();
+        groups.put(groupId, new Group(groupId, title, adminId));
+        
+        for (int member : membersId) {
+            groups.get(groupId).addMember(member);
+        }
+
+        return groups.get(groupId);
+    }
+
     public boolean exists(int groupId){ return groups.containsKey(groupId); }
 
     public Group getGroupById(Integer groupId) { return groups.get(groupId); }
