@@ -246,27 +246,24 @@ public class AdminProcessor implements PacketProcessor {
             return;
         }
 
-        // snapshot of recipients before removal, so removed member also receives the event
-        Set<Integer> recipients = g.getMembers();
-
         groups.removeMember(groupId, memberId);
 
         // ACK to admin (optional: also notify removed member directly, if you want)
         context.sendOk(adminId, "memberId " + memberId + " removed from groupId " + groupId);
 
-        // Broadcast to all previous members (including removed)
-        broadcastMemberRemoved(groupId, memberId, recipients);
+        // Broadcast to all members
+        broadcastMemberRemoved(groupId, memberId);
     }
 
     /*
-     * Broadcast MEMBER_REMOVED to all previous members of the group (including the removed one):
+     * Broadcast MEMBER_REMOVED to all members of the group :
      *
      * Payload:
      *   [subType(MEMBER_REMOVED):1 byte]
      *   [groupId:int]
      *   [removedMember:int]
      */
-    private void broadcastMemberRemoved(int groupId, int removedMemberId, Set<Integer> recipients) {
+    private void broadcastMemberRemoved(int groupId, int removedMemberId) {
         ByteBuffer buf = ByteBuffer.allocate(1 + 2 * Integer.BYTES);
         buf.put(GroupEventType.MEMBER_REMOVED);
         buf.putInt(groupId);
@@ -274,9 +271,16 @@ public class AdminProcessor implements PacketProcessor {
 
         byte[] payload = buf.array();
 
-        for (int memberId : recipients) {
+        for (int memberId : groups.getGroupById(groupId).getMembers()) {
             context.send(Packet.createPacket(0, memberId, PacketType.GROUP_EVENT, payload));
         }
+
+        buf = ByteBuffer.allocate(1 + Integer.BYTES);
+        buf.put(GroupEventType.DELETED);
+        buf.putInt(groupId);
+
+        payload = buf.array();
+        context.send(Packet.createPacket(0, removedMemberId, PacketType.GROUP_EVENT, payload));
     }
 
     /*
