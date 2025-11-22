@@ -6,7 +6,8 @@ import fr.uga.im2ag.m1info.chatservice.server.registries.UserRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Set;
+import java.util.HashSet;
 
 public class AdminProcessor implements PacketProcessor {
     private StrategyContext context;
@@ -27,8 +28,6 @@ public class AdminProcessor implements PacketProcessor {
             throw new IllegalArgumentException("Empty or invalid Admin payload.");
         }
 
-        // Payload header [first byte of the payload] = PacketType.*
-        // [PacketType: int][Rest of the payload...]
         PacketType type = pkt.type();
 
         switch (type) {
@@ -45,62 +44,78 @@ public class AdminProcessor implements PacketProcessor {
     // Handlers
     // ====================================================================
 
-    // At this point [type:int] has already been consumed 
-
     /*
-     * CREATE_GROUP payload:
-     *   [subType(CREATED):1 byte][titleLen:int][title:bytes][memberCount:int][memberId1:int]...[memberIdCount:int]
+     * CREATE_GROUP payload (command from client):
+     *   [titleLen:int][title:bytes][memberCount:int][memberId1:int]...[memberIdN:int]
      */
     private void handleCreateGroup(int adminId, ByteBuffer payload) {
-        // Handle this error just in case
-        if (!users.exists(adminId)) { context.sendError(adminId, "Unknown user " + adminId); }
+        if (!users.exists(adminId)) {
+            context.sendError(adminId, "Unknown user " + adminId);
+            return;
+        }
 
         String title = context.readString(payload);
         if (title == null || title.isEmpty()) {
-            throw new IllegalArgumentException("invalid CREATE_GROUP payload.");
+            throw new IllegalArgumentException("Invalid CREATE_GROUP payload.");
         }
 
-        // Get the number of members to add to the group
         int memberCount = payload.getInt();
 
         Set<Integer> memberIds = new HashSet<>();
-        
-        // Loop over the payload and if the user exists, add them to the group
         for (int i = 0; i < memberCount; i++) {
             int memberId = payload.getInt();
-            if (!users.exists(memberId)); 
+            if (!users.exists(memberId)) {
+                // Ignore unknown ids, just don't add them
+                continue;
+            }
             memberIds.add(memberId);
         }
-        
-        // Create the group
+
+        // Create the group (registry should add admin as member/admin)
         Group g = groups.createGroup(title, adminId, memberIds);
 
-        // ACK to admin -> just for the admin to know the group creation was successful
+        // ACK to admin
         context.sendOk(adminId, "GROUP_CREATED with groupId: " + g.getId());
 
-        // Broadcast to all members of the group -> for them to update their Group Registries
+        // Broadcast to all members of the group (including admin)
         broadcastGroupCreated(g);
     }
-    
+
+    // ====================================================================
+    // Broadcast / payload helpers
+    // ====================================================================
 
     /**
-     * Create a group snapshot and creates the corresponding packet payload -> byte[]
+     * Creates a full "snapshot" of the group used for:
+     *  - newly added member
+     *  - notification after group creation
+     *
+     * Snapshot payload:
+     *   [subType(CREATED):1 byte]
+     *   [groupId:int]
+     *   [titleLen:int][title:bytes]
+     *   [memberCount:int][memberId1:int]...[memberIdN:int]
      */
     private byte[] createGroupSnapshot(Group g) {
         Set<Integer> memberIds = g.getMembers();
         String title = g.getTitle();
-        
-        // Allocate payload
+
+        byte[] titleBytes = title.getBytes();
+        int titleLen = titleBytes.length;
+
         ByteBuffer buf = ByteBuffer.allocate(
-            1 + Integer.BYTES +
-            title.length() + Integer.BYTES +
-            memberIds.size() * Integer.BYTES
+                1 +                       // subtype
+                Integer.BYTES +           // groupId
+                Integer.BYTES +           // titleLen
+                titleLen +                // title
+                Integer.BYTES +           // memberCount
+                memberIds.size() * Integer.BYTES
         );
 
-        // Build payload
-        buf.put(GroupEventType.CREATED); // subtype
-        buf.putInt(title.length());
-        buf.put(title.getBytes());
+        buf.put(GroupEventType.CREATED);
+        buf.putInt(g.getId());
+        buf.putInt(titleLen);
+        buf.put(titleBytes);
         buf.putInt(memberIds.size());
         for (int member : memberIds) buf.putInt(member);
 
@@ -110,14 +125,13 @@ public class AdminProcessor implements PacketProcessor {
     /*
      * Broadcast the Group creation to every member of the newly created group
      * Used to update the members GroupRegistry
+     *
+     * Payload = snapshot (see createGroupSnapshot)
      */
     private void broadcastGroupCreated(Group g) {
         byte[] payload = createGroupSnapshot(g);
-        // For each member of the group, send them a snapshot of all the current group members
         for (int memberId : g.getMembers()) {
-            context.send(
-                Packet.createPacket(0, memberId, PacketType.GROUP_EVENT, payload)
-            );
+            context.send(Packet.createPacket(0, memberId, PacketType.GROUP_EVENT, payload));
         }
     }
 
@@ -126,48 +140,68 @@ public class AdminProcessor implements PacketProcessor {
      *   [groupId:int][memberId:int]
      */
     private void handleAddMember(int adminId, ByteBuffer payload) {
-        if (payload.remaining() < 2 * Integer.BYTES) { context.sendError(adminId, "Invalid ADD_MEMBER payload"); }
+        if (payload.remaining() < 2 * Integer.BYTES) {
+            context.sendError(adminId, "Invalid ADD_MEMBER payload");
+            return;
+        }
 
         int groupId = payload.getInt();
         int memberId = payload.getInt();
 
-        if (groups.exists(groupId) && !groups.hasMember(groupId, adminId)) { context.sendError(adminId, "You are not in this group "); return; }
-        if (!groups.exists(groupId)) { context.sendError(adminId, "Unknown groupId: " + groupId); return; }
-        if (!users.exists(memberId)) { context.sendError(adminId, "Unknown memberId: " + memberId); return; }
-        if (!groups.isAdmin(groupId, adminId)) { context.sendError(adminId, "Can't add member, you are not the admin: " + adminId); return; }
+        if (!groups.exists(groupId)) {
+            context.sendError(adminId, "Unknown groupId: " + groupId);
+            return;
+        }
+        if (!users.exists(memberId)) {
+            context.sendError(adminId, "Unknown memberId: " + memberId);
+            return;
+        }
+        if (!groups.hasMember(groupId, adminId)) {
+            context.sendError(adminId, "You are not in this group");
+            return;
+        }
+        if (!groups.isAdmin(groupId, adminId)) {
+            context.sendError(adminId, "Can't add member, you are not the admin: " + adminId);
+            return;
+        }
 
         Group g = groups.getGroupById(groupId);
-        
-        if (g == null) { context.sendError(adminId, "Unknown Group."); return; }
-        if (!g.addMember(memberId)) { context.sendError(adminId, "User already in group"); return; }
+        if (g == null) {
+            context.sendError(adminId, "Unknown Group.");
+            return;
+        }
 
-        // Send "silent" ACK to admin
+        if (!g.addMember(memberId)) {
+            context.sendError(adminId, "User already in group");
+            return;
+        }
+
+        // ACK to admin
         context.sendOk(adminId, "memberId " + memberId + " added to groupId " + groupId);
 
-        // Broadcast added member to rest of group
+        // Broadcast
         broadcastMemberAdded(g, memberId);
     }
 
-
     /*
-     * Broadcast the added member to every member of the newly created group EXCEPT the added member himself
-     * The added member receives a group snapshot
-     * Used to update the members GroupRegistry
+     * Broadcast the added member:
+     *
+     * 1) To the newly added member:
+     *       payload = snapshot (subType CREATED)
+     *
+     * 2) To the "old" members:
+     *       payload:
+     *           [subType(MEMBER_ADDED):1 byte]
+     *           [groupId:int]
+     *           [addedMember:int]
      */
     public void broadcastMemberAdded(Group g, int addedMember) {
-
-        // addedMember's payload creation + send
+        // 1) Added member: full snapshot
         byte[] addedMemberPayload = createGroupSnapshot(g);
+        context.send(Packet.createPacket(0, addedMember, PacketType.GROUP_EVENT, addedMemberPayload));
 
-        context.send(
-            Packet.createPacket(0, addedMember, PacketType.GROUP_EVENT, addedMemberPayload)
-        );
-
-
-        // "Old" group members (already there before addedMember)
-        // Payload format: [subType(MEMBER_ADDED):1 byte][groupId:int][addedMember:int]
-        ByteBuffer buf = ByteBuffer.allocate(1 + Integer.BYTES * 2);
-        
+        // 2) Existing members
+        ByteBuffer buf = ByteBuffer.allocate(1 + 2 * Integer.BYTES);
         buf.put(GroupEventType.MEMBER_ADDED);
         buf.putInt(g.getId());
         buf.putInt(addedMember);
@@ -176,9 +210,7 @@ public class AdminProcessor implements PacketProcessor {
 
         for (int member : g.getMembers()) {
             if (member == addedMember) continue;
-            context.send(
-                Packet.createPacket(0, member, PacketType.GROUP_EVENT, oldMemberPayload)
-            );
+            context.send(Packet.createPacket(0, member, PacketType.GROUP_EVENT, oldMemberPayload));
         }
     }
 
@@ -188,18 +220,63 @@ public class AdminProcessor implements PacketProcessor {
      */
     private void handleRemoveMember(int adminId, ByteBuffer payload) {
         if (payload.remaining() < 2 * Integer.BYTES) {
-            throw new IllegalArgumentException("Invalid REMOVE_MEMBER payload");
+            context.sendError(adminId, "Invalid REMOVE_MEMBER payload");
+            return;
         }
 
         int groupId = payload.getInt();
         int memberId = payload.getInt();
 
-        if (!groups.exists(groupId)) { context.sendError(adminId, "Unknown groupId: " + groupId); return; }
-        if (!groups.hasMember(groupId, memberId)) { context.sendError(adminId, "Member " + memberId + " not in group " + groupId); return; }
-        if (!groups.isAdmin(groupId, adminId)) { context.sendError(adminId, "Can't add member, you are not the admin"); return; }
+        if (!groups.exists(groupId)) {
+            context.sendError(adminId, "Unknown groupId: " + groupId);
+            return;
+        }
+        if (!groups.hasMember(groupId, memberId)) {
+            context.sendError(adminId, "Member " + memberId + " not in group " + groupId);
+            return;
+        }
+        if (!groups.isAdmin(groupId, adminId)) {
+            context.sendError(adminId, "Can't remove member, you are not the admin");
+            return;
+        }
+
+        Group g = groups.getGroupById(groupId);
+        if (g == null) {
+            context.sendError(adminId, "Unknown Group.");
+            return;
+        }
+
+        // snapshot of recipients before removal, so removed member also receives the event
+        Set<Integer> recipients = g.getMembers();
 
         groups.removeMember(groupId, memberId);
-        context.sendOk(memberId, "memberId " + memberId + " removed from groupId " + groupId);
+
+        // ACK to admin (optional: also notify removed member directly, if you want)
+        context.sendOk(adminId, "memberId " + memberId + " removed from groupId " + groupId);
+
+        // Broadcast to all previous members (including removed)
+        broadcastMemberRemoved(groupId, memberId, recipients);
+    }
+
+    /*
+     * Broadcast MEMBER_REMOVED to all previous members of the group (including the removed one):
+     *
+     * Payload:
+     *   [subType(MEMBER_REMOVED):1 byte]
+     *   [groupId:int]
+     *   [removedMember:int]
+     */
+    private void broadcastMemberRemoved(int groupId, int removedMemberId, Set<Integer> recipients) {
+        ByteBuffer buf = ByteBuffer.allocate(1 + 2 * Integer.BYTES);
+        buf.put(GroupEventType.MEMBER_REMOVED);
+        buf.putInt(groupId);
+        buf.putInt(removedMemberId);
+
+        byte[] payload = buf.array();
+
+        for (int memberId : recipients) {
+            context.send(Packet.createPacket(0, memberId, PacketType.GROUP_EVENT, payload));
+        }
     }
 
     /*
@@ -207,23 +284,64 @@ public class AdminProcessor implements PacketProcessor {
      *   [groupId:int][titleLen:int][title:bytes]
      */
     private void handleRenameGroup(int adminId, ByteBuffer payload) {
-        // We only need to check for a single byte -> groupeId, because the rest is handled by readString
         if (payload.remaining() < Integer.BYTES) {
-            throw new IllegalArgumentException("Invalid RENAME_GROUP payload.");
+            context.sendError(adminId, "Invalid RENAME_GROUP payload.");
+            return;
         }
 
         int groupId = payload.getInt();
         if (!groups.exists(groupId)) {
-            throw new IllegalArgumentException("Unknown groupId " + groupId);
+            context.sendError(adminId, "Unknown groupId " + groupId);
+            return;
+        }
+        if (!groups.isAdmin(groupId, adminId)) {
+            context.sendError(adminId, "Can't rename group, you are not the admin");
+            return;
         }
 
         String newTitle = context.readString(payload);
         if (newTitle == null || newTitle.isEmpty()) {
-            throw new IllegalArgumentException("Group title is either empty or invalid.");
+            context.sendError(adminId, "Group title is either empty or invalid.");
+            return;
         }
 
         groups.rename(groupId, newTitle);
+
+        // ACK to admin
         context.sendOk(adminId, "groupId " + groupId + " has been renamed to " + newTitle);
+
+        // Broadcast rename
+        broadcastGroupRenamed(groupId, newTitle);
+    }
+
+    /*
+     * Broadcast RENAMED event:
+     *
+     * Payload:
+     *   [subType(RENAMED):1 byte]
+     *   [groupId:int]
+     *   [titleLen:int][title:bytes]
+     */
+    private void broadcastGroupRenamed(int groupId, String newTitle) {
+        Group g = groups.getGroupById(groupId);
+
+        // Snapshot members before rename, but we do not need previous name
+        Set<Integer> members = g.getMembers();
+
+        byte[] titleBytes = newTitle.getBytes();
+        int titleLen = titleBytes.length;
+
+        ByteBuffer buf = ByteBuffer.allocate(1 + Integer.BYTES + Integer.BYTES + titleLen);
+        buf.put(GroupEventType.RENAMED);
+        buf.putInt(groupId);
+        buf.putInt(titleLen);
+        buf.put(titleBytes);
+
+        byte[] payload = buf.array();
+
+        for (int memberId : members) {
+            context.send(Packet.createPacket(0, memberId, PacketType.GROUP_EVENT, payload));
+        }
     }
 
     /*
@@ -232,15 +350,54 @@ public class AdminProcessor implements PacketProcessor {
      */
     private void handleDeleteGroup(int adminId, ByteBuffer payload) {
         if (payload.remaining() < Integer.BYTES) {
-            throw new IllegalArgumentException("Invalid DELETE_GROUP payload.");
+            context.sendError(adminId, "Invalid DELETE_GROUP payload.");
+            return;
         }
 
-        int groupeId = payload.getInt();
-        if (!groups.exists(groupeId)) {
-            throw new IllegalArgumentException("Unknown groupId " + groupeId);
+        int groupId = payload.getInt();
+        if (!groups.exists(groupId)) {
+            context.sendError(adminId, "Unknown groupId " + groupId);
+            return;
+        }
+        if (!groups.isAdmin(groupId, adminId)) {
+            context.sendError(adminId, "Can't delete group, you are not the admin");
+            return;
         }
 
-        groups.delete(groupeId);
-        context.sendOk(groupeId, "Delete groupId " + groupeId);
+        Group g = groups.getGroupById(groupId);
+        if (g == null) {
+            context.sendError(adminId, "Unknown Group.");
+            return;
+        }
+
+        // Snapshot members before deletion
+        Set<Integer> members = g.getMembers();
+
+        groups.delete(groupId);
+
+        // ACK to admin
+        context.sendOk(adminId, "Deleted groupId " + groupId);
+
+        // Broadcast delete
+        broadcastGroupDeleted(groupId, members);
+    }
+
+    /*
+     * Broadcast DELETED event:
+     *
+     * Payload:
+     *   [subType(DELETED):1 byte]
+     *   [groupId:int]
+     */
+    private void broadcastGroupDeleted(int groupId, Set<Integer> members) {
+        ByteBuffer buf = ByteBuffer.allocate(1 + Integer.BYTES);
+        buf.put(GroupEventType.DELETED);
+        buf.putInt(groupId);
+
+        byte[] payload = buf.array();
+
+        for (int memberId : members) {
+            context.send(Packet.createPacket(0, memberId, PacketType.GROUP_EVENT, payload));
+        }
     }
 }
