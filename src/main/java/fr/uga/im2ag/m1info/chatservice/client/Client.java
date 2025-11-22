@@ -124,33 +124,36 @@ public class Client {
         }
     }
 
-    private void loadData(){
-        File stateFile = new File("clientData.ser");
-        if(!stateFile.exists()){
-
-            Packet idCreation = Packet.createPacket(0,0, PacketType.CREATE_USER,"");
-            sendPacket(idCreation);
-
-//            String msg = packet.getPayloadAsString();
-//            String[] parts = msg.split(" ");
-//            int id = Integer.parseInt(parts[2]);
-
+    //TODO make loadData work later
+    private void loadData(int id){
+        clientState = new ClientState(id);
+        return;
+//        File stateFile = new File("clientData.ser");
+//        if(!stateFile.exists()){
+//
+////            Packet idCreation = Packet.createPacket(0,0, PacketType.CREATE_USER,"");
+////            sendPacket(idCreation);
+//
+////            String msg = packet.getPayloadAsString();
+////            String[] parts = msg.split(" ");
+////            int id = Integer.parseInt(parts[2]);
+//
 //            clientState = new ClientState(id);
 //            return;
-        }
-
-        try {
-            ObjectInputStream ois;
-
-            FileInputStream dataFile = new FileInputStream("clientData.ser");
-            ois = new ObjectInputStream(dataFile);
-            clientState = (ClientState) ois.readObject();
-            ois.close();
-            dataFile.close();
-
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+//        }
+//
+//        try {
+//            ObjectInputStream ois;
+//
+//            FileInputStream dataFile = new FileInputStream("clientData.ser");
+//            ois = new ObjectInputStream(dataFile);
+//            clientState = (ClientState) ois.readObject();
+//            ois.close();
+//            dataFile.close();
+//
+//        } catch (IOException | ClassNotFoundException e) {
+//            throw new RuntimeException(e);
+//        }
 
     }
 
@@ -167,6 +170,9 @@ public class Client {
     
         // Low-level TCP client
         Client c = new Client(clientId);
+
+        //TODO make loaddata work and move it
+        c.loadData(clientId);
     
         // UI listener for incoming events
         ConsoleClientListener ui = new ConsoleClientListener();

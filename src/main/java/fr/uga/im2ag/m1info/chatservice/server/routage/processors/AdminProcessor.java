@@ -94,11 +94,13 @@ public class AdminProcessor implements PacketProcessor {
      *   [subType(CREATED):1 byte]
      *   [groupId:int]
      *   [titleLen:int][title:bytes]
+     *   [adminId:int]
      *   [memberCount:int][memberId1:int]...[memberIdN:int]
      */
     private byte[] createGroupSnapshot(Group g) {
         Set<Integer> memberIds = g.getMembers();
         String title = g.getTitle();
+        int adminId = g.getAdminId();
 
         byte[] titleBytes = title.getBytes();
         int titleLen = titleBytes.length;
@@ -108,6 +110,7 @@ public class AdminProcessor implements PacketProcessor {
                 Integer.BYTES +           // groupId
                 Integer.BYTES +           // titleLen
                 titleLen +                // title
+                Integer.BYTES +           // adminId
                 Integer.BYTES +           // memberCount
                 memberIds.size() * Integer.BYTES
         );
@@ -116,6 +119,7 @@ public class AdminProcessor implements PacketProcessor {
         buf.putInt(g.getId());
         buf.putInt(titleLen);
         buf.put(titleBytes);
+        buf.putInt(adminId);
         buf.putInt(memberIds.size());
         for (int member : memberIds) buf.putInt(member);
 
