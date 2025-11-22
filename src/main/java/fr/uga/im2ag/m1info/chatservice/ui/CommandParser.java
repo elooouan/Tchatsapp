@@ -124,17 +124,45 @@ public class CommandParser {
     }
 
     /**
-     * /creategroup <name...>
-     */
-    private void handleCreateGroup(String args) {
-        String name = args.trim();
-        if (name.isEmpty()) {
-            System.out.println("Usage: /creategroup <name>");
-            return;
-        }
-        api.createGroup(name);
-        System.out.println("Group creation requested for \"" + name + "\"");
+ * /creategroup <name> [userId1 ... userIdN]
+ */
+private void handleCreateGroup(String args) {
+    String trimmed = args.trim();
+    if (trimmed.isEmpty()) {
+        System.out.println("Usage: /creategroup <name> [userId1 ... userIdN]");
+        return;
     }
+
+    String[] parts = trimmed.split("\\s+");
+    if (parts.length < 1) {
+        System.out.println("Usage: /creategroup <name> [userId1 ... userIdN]");
+        return;
+    }
+
+    // First token = group name (no spaces)
+    String name = parts[0];
+
+    // Remaining tokens = member IDs (optional)
+    int[] memberIds;
+    if (parts.length == 1) {
+        // No user specified -> memberCount must be 0 in the packet
+        memberIds = new int[0];
+    } else {
+        memberIds = new int[parts.length - 1];
+        for (int i = 1; i < parts.length; i++) {
+            try {
+                memberIds[i - 1] = Integer.parseInt(parts[i]);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid user id: \"" + parts[i] + "\" (must be an integer)");
+                return;
+            }
+        }
+    }
+
+    // Just send the request; success/failure will appear via ConsoleClientListener.onACK/onError
+    api.createGroup(name, memberIds);
+}
+
 
     /**
      * /groupadd <groupId> <userId>

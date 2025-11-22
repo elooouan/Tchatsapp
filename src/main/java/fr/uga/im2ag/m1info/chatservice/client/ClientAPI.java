@@ -99,18 +99,40 @@ public class ClientAPI {
      * Payload:
      *   [int nameLen][nameLen bytes UTF-8]
      */
-    public void createGroup(String groupName) {
-        byte[] payload = encodeString(groupName);
+    public void createGroup(String name, int[] memberIds) {
+        if (memberIds == null) {
+            memberIds = new int[0];
+        }
 
-        Packet pkt = new PacketBuilder(payload.length,
-                clientId,
-                ADMIN_ID,
-                PacketType.CREATE_GROUP.ordinal())
-                .setPayload(payload)
-                .build();
+        byte[] nameBytes = name.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        int nameLen = nameBytes.length;
+    
+        java.nio.ByteBuffer buf = java.nio.ByteBuffer.allocate(
+                Integer.BYTES +                    // titleLen
+                nameLen +                          // title
+                Integer.BYTES +                    // memberCount
+                Integer.BYTES * memberIds.length   // member IDs
+        );
+    
+        buf.putInt(nameLen);
+        buf.put(nameBytes);
+        buf.putInt(memberIds.length);             // 0 when no userIds were specified
+        
+        for (int id : memberIds) {
+            buf.putInt(id);
+        }
+    
+        byte[] payload = buf.array();
+        Packet pkt = Packet.createPacket(
+            clientId,
+            0,
+            PacketType.CREATE_GROUP,
+            payload
+        );
 
         sender.sendPacket(pkt);
     }
+    
 
     /**
      * ADD_MEMBER

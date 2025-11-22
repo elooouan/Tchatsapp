@@ -10,7 +10,6 @@ public class ConsoleClientListener implements IncomingPacketProcessor.Listener {
 
     @Override
     public void onDirectText(int fromUserId, String message) {
-        // You can later replace "user <id>" with a pseudo lookup if you have one
         System.out.println("[DM from user " + fromUserId + "] " + message);
     }
 
