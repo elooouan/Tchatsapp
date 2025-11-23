@@ -21,8 +21,8 @@ public class ClientAPI {
 
     private final PacketSender sender;
     private final IncomingPacketProcessor incoming;
-
-    /** This client's id as known by the server. */
+    
+    /** This client's ... as known by the server. */
     private volatile int clientId;
 
     /** This client's pseudo as known by the server. */
@@ -271,6 +271,27 @@ public class ClientAPI {
         sender.sendPacket(pkt);
     }
 
+
+    /**
+     * LIST_CONTACTS
+     * payload: empty
+     * 
+     * Ask server to send the contact list
+     */
+    public void requestContacts() {
+        byte[] payload = new byte[0];   // empty payload
+
+        Packet pkt = new PacketBuilder(
+                payload.length,
+                clientId,
+                ADMIN_ID,
+                PacketType.LIST_CONTACTS.ordinal())
+                .setPayload(payload)
+                .build();
+
+        sender.sendPacket(pkt);
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -287,4 +308,10 @@ public class ClientAPI {
         buf.put(data);
         return buf.array();
     }
+
+    public String resolveUserName(int userId) {
+        return Client.getClientState()
+                     .getContactRegistry()
+                     .resolveUserName(userId);
+    }    
 }

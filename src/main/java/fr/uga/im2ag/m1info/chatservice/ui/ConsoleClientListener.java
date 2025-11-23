@@ -1,6 +1,7 @@
 package fr.uga.im2ag.m1info.chatservice.ui;
 
 import fr.uga.im2ag.m1info.chatservice.client.IncomingPacketProcessor;
+import fr.uga.im2ag.m1info.chatservice.client.registries.ContactRegistry;
 
 import java.util.Set;
 
@@ -9,6 +10,12 @@ import java.util.Set;
  * that prints events to the console.
  */
 public class ConsoleClientListener implements IncomingPacketProcessor.Listener {
+
+    private final ContactRegistry contacts;
+
+    public ConsoleClientListener(ContactRegistry contacts) {
+        this.contacts = contacts;
+    }
 
     @Override
     public void onDirectText(int fromUserId, String message) {
@@ -49,6 +56,15 @@ public class ConsoleClientListener implements IncomingPacketProcessor.Listener {
         }
 
         System.out.println("[Group " + groupId + " ] " + title + " was created with " + memberList.toString());
+    }
+
+    @Override
+    public void onContactsUpdated() {
+        System.out.println("[Contacts]:");
+
+        for (int id : contacts.getContacts()) {
+            System.out.println("  " + id + " -> " + contacts.resolveUserName(id));
+        }
     }
 
     @Override

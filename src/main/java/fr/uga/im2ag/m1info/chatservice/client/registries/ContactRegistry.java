@@ -1,36 +1,46 @@
 package fr.uga.im2ag.m1info.chatservice.client.registries;
 
-import fr.uga.im2ag.m1info.chatservice.common.User;
-
 import java.io.Serializable;
 import java.util.*;
 
 /**
  * Stores contact relations between users.
- * Contacts are symmetric: if A has B, then B also has A.
+ * On the client, this is simply a map userId -> pseudo (string).
+ * The server keeps the full symmetric contact structure.
  */
 public class ContactRegistry implements Serializable {
-    private Map<User, Set<User>> contacts = new HashMap<>();
 
-    public void addContact(User user, User newContact) {
-        if (user == null || newContact == null || user == newContact) return;
+    /** contactId -> pseudo */
+    private final Map<Integer, String> contacts = new HashMap<>();
 
-        contacts.computeIfAbsent(user, k -> new HashSet<>()).add(newContact); // Add u2 to u1's contacts
+    /**
+     * Add or update a contact's pseudo.
+     */
+    public void addContact(int userId, String pseudo) {
+        if (pseudo == null) pseudo = "";
+        contacts.put(userId, pseudo);
     }
 
-    public void removeContact(User user, User toRemove) {
-        if (user == null || toRemove == null || user == toRemove) return;
-
-        Set<User> userContacts = contacts.get(user); // Fetch the user's contacts
-        userContacts.remove(toRemove); // Remove toRemove from his contacts
-        
-        if (contacts.get(user).isEmpty()) contacts.remove(user); // If he has no contacts remove him from the contacts HashMap
+    /**
+     * Clear all contacts (used when we receive a fresh CONTACTS_LIST).
+     */
+    public void clear() {
+        contacts.clear();
     }
 
-    public Set<User> getContacts(User user) { 
-        Set<User> userContacts = contacts.get(user);
-        if (userContacts == null) return Collections.emptySet();
-        return Collections.unmodifiableSet(userContacts); // Avoid bugs and preserve encapsulation 
+    /**
+     * Return the set of contact IDs.
+     * (Client only knows IDs + pseudos, not full User objects)
+     */
+    public Set<Integer> getContacts() {
+        return Collections.unmodifiableSet(contacts.keySet());
+    }
+
+    /**
+     * Resolve a userId to a pseudo if known, else return the id as a string.
+     */
+    public String resolveUserName(int id) {
+        String name = contacts.get(id);
+        return (name == null || name.isBlank()) ? "" + id : name;
     }
 }
-

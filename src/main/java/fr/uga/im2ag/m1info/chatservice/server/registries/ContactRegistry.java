@@ -27,7 +27,7 @@ public class ContactRegistry implements Serializable {
         if (contacts.get(user).isEmpty()) contacts.remove(user); // If he has no contacts remove him from the contacts HashMap
     }
 
-    public Set<User> getContacts(User user) { 
+    public Set<User> listContacts(User user) { 
         Set<User> userContacts = contacts.get(user);
         if (userContacts == null) return Collections.emptySet();
         return Collections.unmodifiableSet(userContacts); // Avoid bugs and preserve encapsulation 

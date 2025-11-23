@@ -12,6 +12,7 @@ public class CommandParser {
     private final Scanner in;
 
     private volatile boolean running = true;
+    private Integer lastDirectTargetId = null;
 
     public CommandParser(ClientAPI api, Scanner in) {
         this.api = api;
@@ -41,10 +42,19 @@ public class CommandParser {
      * Builds the user's prompt
      */
     private String buildPrompt() {
-        String p = api.getPseudo();
-        return (p == null || p.isBlank())
-                ? "> "
-                : p + "> ";
+        String self = api.getPseudo();
+        if (self == null || self.isBlank()) {
+            self = "";
+        }
+
+        String peerPart = "";
+        if (lastDirectTargetId != null) {
+            // use contacts mapping: name if in contacts, else "#id"
+            String peerName = api.resolveUserName(lastDirectTargetId);
+            peerPart = " -> " + peerName;
+        }
+
+        return self + peerPart + "> ";
     }
     
 
@@ -72,6 +82,7 @@ public class CommandParser {
             case "/grouprename" -> handleGroupRename(args);
             case "/groupdelete" -> handleGroupDelete(args);
             case "/addcontact" -> handleAddContact(args);
+            case "/contacts" -> handleContacts();
             default -> System.out.println("Unknown command: " + cmd + " (try /help)");
         }
     }
@@ -99,6 +110,8 @@ public class CommandParser {
             return;
         }
         String message = parts[1];
+
+        lastDirectTargetId = userId;        // remember for the prompt
         api.sendDirectMessage(userId, message);
     }
 
@@ -263,18 +276,25 @@ private void handleCreateGroup(String args) {
         }
     }
 
+    /**
+     * /contacts
+     */
+    private void handleContacts() { api.requestContacts(); }
+    
+
     private void printHelp() {
         System.out.println("Available commands:");
-        System.out.println("  /help                         - show this help");
-        System.out.println("  /quit                         - exit");
-        System.out.println("  /msg <userId> <message>       - send direct message");
-        System.out.println("  /gmsg <groupId> <message>     - send message to group");
-        System.out.println("  /pseudo <name>                - change your pseudo");
-        System.out.println("  /creategroup <name>           - create a new group");
-        System.out.println("  /groupadd <groupId> <userId>  - add member to group");
-        System.out.println("  /groupremove <groupId> <userId> - remove member from group");
-        System.out.println("  /grouprename <groupId> <name> - rename group");
-        System.out.println("  /groupdelete <groupId>        - delete group");
-        System.out.println("  /addcontact <userId>          - add a contact");
+        System.out.println("  /help                             - show this help");
+        System.out.println("  /quit                             - exit");
+        System.out.println("  /msg <userId> <message>           - send direct message");
+        System.out.println("  /gmsg <groupId> <message>         - send message to group");
+        System.out.println("  /pseudo <name>                    - change your pseudo");
+        System.out.println("  /creategroup <name>               - create a new group");
+        System.out.println("  /groupadd <groupId> <userId>      - add member to group");
+        System.out.println("  /groupremove <groupId> <userId>   - remove member from group");
+        System.out.println("  /grouprename <groupId> <name>     - rename group");
+        System.out.println("  /groupdelete <groupId>            - delete group");
+        System.out.println("  /addcontact <userId>              - add a contact");
+        System.out.println("  /contacts                         - display all contacts");
     }
 }

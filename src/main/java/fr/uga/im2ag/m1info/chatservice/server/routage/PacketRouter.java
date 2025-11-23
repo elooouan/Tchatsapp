@@ -23,23 +23,28 @@ public class PacketRouter {
         AdminProcessor admin = new AdminProcessor(context);
         UserProcessor user = new UserProcessor(context);
 
+        // DirectMessageProcessor
         strategies.put(PacketType.TEXT_USER,   new DirectMessageProcessor(context));
+
+        // GroupMessageProcessor
         strategies.put(PacketType.TEXT_GROUP,  new GroupMessageProcessor(context));
 
-        strategies.put(PacketType.CREATE_GROUP, admin);
-        strategies.put(PacketType.ADD_MEMBER,   admin);
-        strategies.put(PacketType.REMOVE_MEMBER,admin);
-        strategies.put(PacketType.RENAME_GROUP, admin);
-        strategies.put(PacketType.DELETE_GROUP, admin);
+        // AdminProcessor
+        strategies.put(PacketType.CREATE_GROUP,  admin);
+        strategies.put(PacketType.ADD_MEMBER,    admin);
+        strategies.put(PacketType.REMOVE_MEMBER, admin);
+        strategies.put(PacketType.RENAME_GROUP,  admin);
+        strategies.put(PacketType.DELETE_GROUP,  admin);
 
-        strategies.put(PacketType.SET_PSEUDO,  user);
-        strategies.put(PacketType.ADD_CONTACT, user);
-        strategies.put(PacketType.CREATE_USER, user);
+        // UserProcessor
+        strategies.put(PacketType.SET_PSEUDO,    user);
+        strategies.put(PacketType.ADD_CONTACT,   user);
+        strategies.put(PacketType.CREATE_USER,   user);
+        strategies.put(PacketType.LIST_CONTACTS, user);
     }
 
     public PacketProcessor resolve(Packet p) {
         PacketType type = p.type();
-        
         // Might need error handling -> UnknownPacketTypeProcessor
         return strategies.get(type);
     }

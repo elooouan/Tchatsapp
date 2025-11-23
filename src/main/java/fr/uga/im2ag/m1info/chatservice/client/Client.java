@@ -174,7 +174,8 @@ public class Client {
         c.loadData(clientId);
     
         // UI listener for incoming events
-        ConsoleClientListener ui = new ConsoleClientListener();
+        ConsoleClientListener ui = new ConsoleClientListener(Client.getClientState().getContactRegistry());
+
     
         // High-level API (outgoing + incoming decoding)
         ClientAPI api = new ClientAPI(
