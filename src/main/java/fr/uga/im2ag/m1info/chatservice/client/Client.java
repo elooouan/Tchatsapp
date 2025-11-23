@@ -12,7 +12,6 @@
 package fr.uga.im2ag.m1info.chatservice.client;
 
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
-import fr.uga.im2ag.m1info.chatservice.common.PacketType;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 
 import fr.uga.im2ag.m1info.chatservice.ui.ConsoleClientListener;
@@ -171,7 +170,7 @@ public class Client {
         // Low-level TCP client
         Client c = new Client(clientId);
 
-        //TODO make loaddata work and move it
+        //TODO make load data work and move it
         c.loadData(clientId);
     
         // UI listener for incoming events

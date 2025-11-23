@@ -24,7 +24,7 @@ public class CommandParser {
     public void run() {
         printHelp();
         while (running && in.hasNextLine()) {
-            System.out.print("> ");
+            System.out.print(buildPrompt());
             String line = in.nextLine().trim();
             if (line.isEmpty()) {
                 continue;
@@ -36,6 +36,17 @@ public class CommandParser {
             }
         }
     }
+
+    /**
+     * Builds the user's prompt
+     */
+    private String buildPrompt() {
+        String p = api.getPseudo();
+        return (p == null || p.isBlank())
+                ? "> "
+                : p + "> ";
+    }
+    
 
     private void handleLine(String line) {
         if (!line.startsWith("/")) {

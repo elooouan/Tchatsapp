@@ -25,6 +25,9 @@ public class ClientAPI {
     /** This client's id as known by the server. */
     private volatile int clientId;
 
+    /** This client's pseudo as known by the server. */
+    private volatile String pseudo;
+
     public ClientAPI(PacketSender sender,
                      int initialClientId,
                      IncomingPacketProcessor.Listener listener) {
@@ -33,12 +36,21 @@ public class ClientAPI {
         this.incoming = new IncomingPacketProcessor(listener);
     }
 
+    /*********************************** SETTERS ************************************/ 
+
     /**
      * If the server later tells us our real client id, we can update it.
      */
     public void setClientId(int clientId) {
         this.clientId = clientId;
     }
+
+    /*********************************** GETTERS ************************************/ 
+
+    /**
+     * Getter for the user's username
+     */
+    public String getPseudo() { return pseudo; }
 
     // -------------------------------------------------------------------------
     // Incoming side: called by the TCP reader thread (In client)
@@ -226,6 +238,7 @@ public class ClientAPI {
      *   [int nameLen][nameLen bytes UTF-8]
      */
     public void setPseudo(String pseudo) {
+        this.pseudo = pseudo; // for the getter
         byte[] payload = encodeString(pseudo);
 
         Packet pkt = new PacketBuilder(payload.length,
