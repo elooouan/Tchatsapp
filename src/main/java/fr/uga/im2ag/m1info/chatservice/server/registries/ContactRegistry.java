@@ -11,11 +11,13 @@ import java.util.*;
  */
 public class ContactRegistry implements Serializable {
     private Map<User, Set<User>> contacts = new HashMap<>();
+    private Map<User, Set<User>> usersWhoHaveYourContact = new HashMap<>();
 
     public void addContact(User user, User newContact) {
         if (user == null || newContact == null || user == newContact) return;
 
         contacts.computeIfAbsent(user, k -> new HashSet<>()).add(newContact); // Add u2 to u1's contacts
+        usersWhoHaveYourContact.computeIfAbsent(newContact, k -> new HashSet<>()).add(user);
     }
 
     public void removeContact(User user, User toRemove) {
@@ -32,5 +34,7 @@ public class ContactRegistry implements Serializable {
         if (userContacts == null) return Collections.emptySet();
         return Collections.unmodifiableSet(userContacts); // Avoid bugs and preserve encapsulation 
     }
+
+    public Set<User> getUserWhoHaveYourContact(User caller) { return usersWhoHaveYourContact.get(caller); }
 }
 

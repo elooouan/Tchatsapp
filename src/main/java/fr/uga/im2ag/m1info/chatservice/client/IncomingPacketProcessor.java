@@ -30,7 +30,7 @@ public class IncomingPacketProcessor implements PacketProcessor {
         void onGroupRenamed(int groupId, String title);
         void onGroupDeleted(int groupId);
         void onGroupCreated(int groupId, String title, int adminId, Set<Integer> membersIds);
-        void onContactsUpdated();
+        void onContactAdded(int contactId, String pseudo);
         void onACK(String message);
         void onError(String message);
         void onUnknownPacket(Packet pkt);
@@ -58,10 +58,11 @@ public class IncomingPacketProcessor implements PacketProcessor {
 
         // Works with certain java versions -> double check before running
         switch (type) {
-            case TEXT_USER -> handleDirectText(pkt, payload);
-            case TEXT_GROUP -> handleGroupText(pkt, payload);
+            case TEXT_USER -> handleDirectText(pkt);
+            case TEXT_GROUP -> handleGroupText(pkt);
+            case SET_PSEUDO -> handleSetPseudo(payload);
             case GROUP_EVENT -> handleGroupEvent(pkt, payload);
-            case LIST_CONTACTS -> handleListContacts(payload);
+            case ADD_CONTACT -> handleAddContact(payload);
             case CREATE_USER -> handleUserCreated(payload);
             case ACK -> handleACK(pkt, payload);
             case ERROR -> handleError(pkt, payload);
@@ -75,7 +76,7 @@ public class IncomingPacketProcessor implements PacketProcessor {
      * Sender id = pkt.from()
      * Recipient id = pkt.to() (this client)
      */
-    private void handleDirectText(Packet pkt, ByteBuffer payload) {
+    private void handleDirectText(Packet pkt) {
         String message = pkt.payloadAsString();
         int fromUserId = pkt.from();
         messages.addMessage(fromUserId,fromUserId, message);
@@ -88,12 +89,24 @@ public class IncomingPacketProcessor implements PacketProcessor {
      * Sender id   = pkt.from()
      * Group id    = pkt.to()
      */
-    private void handleGroupText(Packet pkt, ByteBuffer payload) {
+    private void handleGroupText(Packet pkt) {
         String message = pkt.payloadAsString();
         int fromUserId = pkt.from();
         int groupId = pkt.to();
         messages.addMessage(groupId,fromUserId, message);
         listener.onGroupText(groupId, fromUserId, message);
+    }
+
+    /**
+     * SET_PSEUDO payload format:
+     *   [int contactId][newPseudoLength int][newPseudo Bytes]
+     */
+    private void handleSetPseudo(ByteBuffer payload) {
+        int contactId = payload.getInt();
+        String newPseudo = readString(payload);
+
+        // Update this client's registry with the new contact Id
+        contacts.setPseudo(contactId, newPseudo);
     }
 
     /**
@@ -210,30 +223,19 @@ public class IncomingPacketProcessor implements PacketProcessor {
         listener.onGroupText(groupId, fromUserId, message);
     }
 
-
     /**
-     * LIST_CONTACTS reply payload format:
-     *   [int count]
-     *   repeated count times:
-     *     [int userId]
-     *     [int nameLen]
-     *     [nameLen bytes UTF-8]
+     * ADD_CONTACT
+     * Add the contact Client-side
+     * Payload format:
+     * [contactId:int][pseudoLen:int][pseudo:bytes]
      */
-    private void handleListContacts(ByteBuffer payload) {
-        contacts.clear();
+    private void handleAddContact(ByteBuffer payload) {
+        int contactId = payload.getInt();
+        String pseudo = readString(payload);
 
-        int count = payload.getInt();
-        for (int i = 0; i < count; i++) {
-            int userId   = payload.getInt();
-            int nameLen  = payload.getInt();
-            byte[] nameBytes = new byte[nameLen];
-            payload.get(nameBytes);
-
-            String pseudo = new String(nameBytes, StandardCharsets.UTF_8);
-            contacts.addContact(userId, pseudo);
-        }
-
-        listener.onContactsUpdated();
+        if (pseudo == "") pseudo = null;
+        contacts.addContact(contactId, pseudo);
+        listener.onContactAdded(contactId, pseudo);
     }
 
     /**
