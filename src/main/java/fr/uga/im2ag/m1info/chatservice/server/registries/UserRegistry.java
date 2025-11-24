@@ -17,11 +17,6 @@ public class UserRegistry implements Serializable {
         this.idGenerator = idGenerator;
     }
 
-    //TODO JUST FOR TESTING NEEDS TO BE REMOVED
-    public Map<Integer,User> getUsers(){
-        return users;
-    }
-
     public boolean exists(int userId) {
         return users.containsKey(userId);
     }
