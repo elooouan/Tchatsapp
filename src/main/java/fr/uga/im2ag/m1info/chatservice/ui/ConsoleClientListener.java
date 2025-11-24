@@ -1,5 +1,6 @@
 package fr.uga.im2ag.m1info.chatservice.ui;
 
+import fr.uga.im2ag.m1info.chatservice.client.ClientAPI;
 import fr.uga.im2ag.m1info.chatservice.client.IncomingPacketProcessor;
 import fr.uga.im2ag.m1info.chatservice.client.registries.ContactRegistry;
 
@@ -13,28 +14,34 @@ public class ConsoleClientListener implements IncomingPacketProcessor.Listener {
 
     private final ContactRegistry contacts;
 
+    private ClientAPI api;
+
+    public void setApi(ClientAPI api) {
+        this.api = api;
+    }
+
     public ConsoleClientListener(ContactRegistry contacts) {
         this.contacts = contacts;
     }
 
     @Override
     public void onDirectText(int fromUserId, String message) {
-        System.out.println("[DM from user " + fromUserId + "] " + message);
+        System.out.println("[DM from user " + api.resolveUserName(fromUserId) + "] " + message);
     }
 
     @Override
     public void onGroupText(int groupId, int fromUserId, String message) {
-        System.out.println("[Group " + groupId + " | from user " + fromUserId + "] " + message);
+        System.out.println("[Group " + groupId + " | from user " + api.resolveUserName(fromUserId) + "] " + message);
     }
 
     @Override
     public void onMemberAdded(int groupId, int addedMember) {
-        System.out.println("[Group " + groupId + " ] " + addedMember + " was added");
+        System.out.println("[Group " + groupId + " ] " + api.resolveUserName(addedMember) + " was added");
     }
 
     @Override
     public void onMemberRemoved(int groupId, int removedMember) {
-        System.out.println("[Group " + groupId + " ] " + removedMember + " was removed");
+        System.out.println("[Group " + groupId + " ] " + api.resolveUserName(removedMember) + " was removed");
     }
 
     @Override
@@ -51,7 +58,7 @@ public class ConsoleClientListener implements IncomingPacketProcessor.Listener {
     public void onGroupCreated(int groupId, String title, int adminId, Set<Integer> membersIds) {
         StringBuilder memberList = new StringBuilder();
         for(int member : membersIds){
-            memberList.append(member);
+            memberList.append(api.resolveUserName(member));
             memberList.append(" ");
         }
 

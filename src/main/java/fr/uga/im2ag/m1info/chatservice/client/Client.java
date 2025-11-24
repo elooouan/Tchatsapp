@@ -219,6 +219,8 @@ public class Client {
                 Client.getClientState().getClientId(),
                 ui               // IncomingPacketProcessor.Listener
         );
+
+        ui.setApi(api);
     
         // Tell Client to forward incoming packets to ClientAPI
         c.setPacketProcessor(api::handleIncoming);
