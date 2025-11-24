@@ -434,7 +434,7 @@ public class TchatsAppServer implements PacketSender {
         try{
             ObjectOutputStream oos;
 
-            FileOutputStream dataFile = new FileOutputStream("state.ser");
+            FileOutputStream dataFile = new FileOutputStream("serverState.ser");
             oos = new ObjectOutputStream(dataFile);
             oos.writeObject(serverState);
             oos.close();

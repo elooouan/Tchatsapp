@@ -118,19 +118,17 @@ public class Client {
         }
     }
 
-    //TODO make loadData work later
-    private void loadData(int id){
-        File stateFile = new File("clientData.ser");
+    private void loadData(String file){
+        File stateFile = new File(file);
         if(!stateFile.exists()){
             clientState = new ClientState();
-            clientState.setClientId(id);
             return;
         }
 
         try {
             ObjectInputStream ois;
 
-            FileInputStream dataFile = new FileInputStream("clientData.ser");
+            FileInputStream dataFile = new FileInputStream(file);
             ois = new ObjectInputStream(dataFile);
             clientState = (ClientState) ois.readObject();
             ois.close();
@@ -142,22 +140,75 @@ public class Client {
 
     }
 
+    private void loadData(){
+        File stateFile = new File("clientState.ser");
+        if(!stateFile.exists()){
+            clientState = new ClientState();
+            return;
+        }
+
+        try {
+            ObjectInputStream ois;
+
+            FileInputStream dataFile = new FileInputStream("clientState.ser");
+            ois = new ObjectInputStream(dataFile);
+            clientState = (ClientState) ois.readObject();
+            ois.close();
+            dataFile.close();
+
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static ClientState getClientState(){
         return clientState;
     }
 
+    private void saveData(String file){
+        try{
+            ObjectOutputStream oos;
+
+            FileOutputStream dataFile = new FileOutputStream(file);
+            oos = new ObjectOutputStream(dataFile);
+            oos.writeObject(clientState);
+            oos.close();
+            dataFile.close();
+
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private void saveData(){
+        try{
+            ObjectOutputStream oos;
+
+            FileOutputStream dataFile = new FileOutputStream("clientState.ser");
+            oos = new ObjectOutputStream(dataFile);
+            oos.writeObject(clientState);
+            oos.close();
+            dataFile.close();
+
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     /** A bsic client in command line **/
     public static void main(String[] args) throws IOException {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Your id ? (0 to create a new account)");
-        int clientId = sc.nextInt();
-        sc.nextLine(); // consume end of line
 
         // Low-level TCP client
         Client c = new Client();
 
-        //TODO make load data work and move it
-        c.loadData(clientId);
+        if(args.length == 0){
+            c.loadData();
+        }else{
+            c.loadData(args[0]);
+        }
+        Scanner sc = new Scanner(System.in);
     
         // UI listener for incoming events
         ConsoleClientListener ui = new ConsoleClientListener(Client.getClientState().getContactRegistry());
@@ -186,6 +237,11 @@ public class Client {
             parser.run();
     
             c.disconnect();
+            if(args.length == 0){
+                c.saveData();
+            }else{
+                c.saveData(args[0]);
+            }
             System.exit(0);
         } else {
             System.err.println("Connection failed.");
