@@ -3,7 +3,9 @@ package fr.uga.im2ag.m1info.chatservice.ui;
  * Command-line parser / REPL for the TchatsApp client.
  */
 import fr.uga.im2ag.m1info.chatservice.client.ClientAPI;
+import fr.uga.im2ag.m1info.chatservice.common.Message;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class CommandParser {
@@ -75,6 +77,7 @@ public class CommandParser {
             case "/quit", "/exit" -> handleQuit();
             case "/msg" -> handleMsg(args);
             case "/gmsg" -> handleGroupMsg(args);
+            case "/showmsgs" -> handleShowMsgs(args);
             case "/pseudo" -> handlePseudo(args);
             case "/creategroup" -> handleCreateGroup(args);
             case "/groupadd" -> handleGroupAdd(args);
@@ -133,6 +136,22 @@ public class CommandParser {
         }
         String message = parts[1];
         api.sendGroupMessage(groupId, message);
+    }
+
+    private void handleShowMsgs(String args) {
+        String[] parts = args.trim().split("\\s+");
+        if (parts.length != 1) {
+            System.out.println("Usage: /showmsgs <convId>");
+        }
+        String convId = parts[0];
+        List<Message> messages = api.getConversation(Integer.parseInt(convId));
+        if(messages == null){
+            System.out.println("No convesation");
+        }
+        for(int i = 0; i < messages.size(); i++){
+            Message msg = messages.get(i);
+            System.out.println(api.resolveUserName(msg.getFrom()) + ": " + msg.getMessage());
+        }
     }
 
     /**

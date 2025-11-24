@@ -14,6 +14,7 @@ package fr.uga.im2ag.m1info.chatservice.client;
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 
+import fr.uga.im2ag.m1info.chatservice.common.PacketType;
 import fr.uga.im2ag.m1info.chatservice.ui.ConsoleClientListener;
 import fr.uga.im2ag.m1info.chatservice.ui.CommandParser;
 
@@ -28,17 +29,11 @@ import java.util.Scanner;
  */
 public class Client {
 
-    private int clientId;
     private Socket cnx;
     private PacketProcessor processor;
     private static ClientState clientState;
 
-    public Client() {
-        this(0);
-    }
-    public Client(int clientId) {
-        this.clientId=clientId;
-    }
+    public Client() {}
 
     /**
      * Attemps to connect to a given server.
@@ -52,10 +47,10 @@ public class Client {
             cnx = new Socket(host,port);
             DataOutputStream dos = new DataOutputStream(cnx.getOutputStream());
             DataInputStream dis = new DataInputStream(cnx.getInputStream());
-            dos.writeInt(clientId);
+            dos.writeInt(clientState.getClientId());
             dos.flush();
             // read the empty packet and use the recipient id
-            clientId=Packet.readFrom(dis).to();
+            clientState.setClientId(Packet.readFrom(dis).to());
 
             // reception thread
             new Thread(() ->{
@@ -78,7 +73,7 @@ public class Client {
     }
 
     public int getClientId() {
-        return clientId;
+        return clientState.getClientId();
     }
 
     /**
@@ -124,35 +119,25 @@ public class Client {
     }
 
     //TODO make loadData work later
-    private void loadData(int id){
-        clientState = new ClientState(id);
-        return;
-//        File stateFile = new File("clientData.ser");
-//        if(!stateFile.exists()){
-//
-////            Packet idCreation = Packet.createPacket(0,0, PacketType.CREATE_USER,"");
-////            sendPacket(idCreation);
-//
-////            String msg = packet.getPayloadAsString();
-////            String[] parts = msg.split(" ");
-////            int id = Integer.parseInt(parts[2]);
-//
-//            clientState = new ClientState(id);
-//            return;
-//        }
-//
-//        try {
-//            ObjectInputStream ois;
-//
-//            FileInputStream dataFile = new FileInputStream("clientData.ser");
-//            ois = new ObjectInputStream(dataFile);
-//            clientState = (ClientState) ois.readObject();
-//            ois.close();
-//            dataFile.close();
-//
-//        } catch (IOException | ClassNotFoundException e) {
-//            throw new RuntimeException(e);
-//        }
+    private void loadData(){
+        File stateFile = new File("clientData.ser");
+        if(!stateFile.exists()){
+            clientState = new ClientState();
+            return;
+        }
+
+        try {
+            ObjectInputStream ois;
+
+            FileInputStream dataFile = new FileInputStream("clientData.ser");
+            ois = new ObjectInputStream(dataFile);
+            clientState = (ClientState) ois.readObject();
+            ois.close();
+            dataFile.close();
+
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -163,15 +148,12 @@ public class Client {
     /** A bsic client in command line **/
     public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Your id ? (0 to create a new account)");
-        int clientId = sc.nextInt();
-        sc.nextLine(); // consume end of line
-    
+
         // Low-level TCP client
-        Client c = new Client(clientId);
+        Client c = new Client();
 
         //TODO make load data work and move it
-        c.loadData(clientId);
+        c.loadData();
     
         // UI listener for incoming events
         ConsoleClientListener ui = new ConsoleClientListener(Client.getClientState().getContactRegistry());
@@ -180,7 +162,7 @@ public class Client {
         // High-level API (outgoing + incoming decoding)
         ClientAPI api = new ClientAPI(
                 c::sendPacket,   // PacketSender -> use Client.sendPacket
-                clientId,
+                Client.getClientState().getClientId(),
                 ui               // IncomingPacketProcessor.Listener
         );
     
@@ -190,10 +172,9 @@ public class Client {
         // Connect
         if (c.connect("localhost", 1666)) {
             // Server may assign a new id
-            clientId = c.getClientId();
-            api.setClientId(clientId);
+            api.setClientId(Client.getClientState().getClientId());
     
-            System.out.println("You are now connected with id: " + clientId);
+            System.out.println("You are now connected with id: " + Client.getClientState().getClientId());
             System.out.println("Type /help for the list of commands.");
     
             // Command parser loop

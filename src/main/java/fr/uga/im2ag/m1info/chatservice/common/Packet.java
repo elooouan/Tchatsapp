@@ -77,8 +77,8 @@ public class Packet {
             return this;
         }
 
-        public PacketBuilder setType(int type) {
-            buf.putInt(OFFSET_TYPE, type);
+        public PacketBuilder setType(PacketType type) {
+            buf.putInt(OFFSET_TYPE, type.ordinal());
             return this;
         }
 

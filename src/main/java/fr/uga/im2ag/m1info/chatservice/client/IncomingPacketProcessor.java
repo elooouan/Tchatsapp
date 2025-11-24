@@ -2,6 +2,7 @@ package fr.uga.im2ag.m1info.chatservice.client;
 
 import fr.uga.im2ag.m1info.chatservice.client.registries.ContactRegistry;
 import fr.uga.im2ag.m1info.chatservice.client.registries.GroupRegistry;
+import fr.uga.im2ag.m1info.chatservice.client.registries.MessageRegistry;
 import fr.uga.im2ag.m1info.chatservice.common.*;
 
 import java.nio.ByteBuffer;
@@ -16,7 +17,7 @@ import java.util.Set;
 public class IncomingPacketProcessor implements PacketProcessor {
     private ContactRegistry contacts;
     private GroupRegistry groups;
-    // private MessageRegistry messages;
+    private MessageRegistry messages;
 
     /**
      * Callbacks for the client UI / model.
@@ -40,7 +41,7 @@ public class IncomingPacketProcessor implements PacketProcessor {
     public IncomingPacketProcessor(Listener listener) {
         contacts = Client.getClientState().getContactRegistry();
         groups = Client.getClientState().getGroupRegistry();
-        // messages = Client.getClientState().getMessageRegistry();
+        messages = Client.getClientState().getMessageRegistry();
         this.listener = listener;
     }
 
@@ -59,8 +60,9 @@ public class IncomingPacketProcessor implements PacketProcessor {
         switch (type) {
             case TEXT_USER -> handleDirectText(pkt, payload);
             case TEXT_GROUP -> handleGroupText(pkt, payload);
-            case GROUP_EVENT -> handleGroupEvent(payload);
+            case GROUP_EVENT -> handleGroupEvent(pkt, payload);
             case LIST_CONTACTS -> handleListContacts(payload);
+            case CREATE_USER -> handleUserCreated(payload);
             case ACK -> handleACK(pkt, payload);
             case ERROR -> handleError(pkt, payload);
             default -> listener.onUnknownPacket(pkt);
@@ -76,6 +78,7 @@ public class IncomingPacketProcessor implements PacketProcessor {
     private void handleDirectText(Packet pkt, ByteBuffer payload) {
         String message = pkt.payloadAsString();
         int fromUserId = pkt.from();
+        messages.addMessage(fromUserId,fromUserId, message);
         listener.onDirectText(fromUserId, message);
     }
 
@@ -89,6 +92,7 @@ public class IncomingPacketProcessor implements PacketProcessor {
         String message = pkt.payloadAsString();
         int fromUserId = pkt.from();
         int groupId = pkt.to();
+        messages.addMessage(groupId,fromUserId, message);
         listener.onGroupText(groupId, fromUserId, message);
     }
 
@@ -97,7 +101,7 @@ public class IncomingPacketProcessor implements PacketProcessor {
      *   [byte subType]...
      *  Redistribute to subtype handlers
      */
-    private void handleGroupEvent(ByteBuffer payload) {
+    private void handleGroupEvent(Packet pkt, ByteBuffer payload) {
         byte subType = payload.get();
 
         switch (subType) {
@@ -106,6 +110,7 @@ public class IncomingPacketProcessor implements PacketProcessor {
             case GroupEventType.RENAMED -> handleGroupRenamed(payload);
             case GroupEventType.DELETED -> handleGroupDeleted(payload);
             case GroupEventType.CREATED -> handleGroupCreated(payload);
+            case GroupEventType.MESSAGE_RECIEVED -> handleGroupMessageReceived(pkt, payload);
         }
     }
 
@@ -192,6 +197,21 @@ public class IncomingPacketProcessor implements PacketProcessor {
 
 
     /**
+     * MESSAGE_RECEIVED payload format:
+     *   [groupId:int]
+     *   [int msgLength][msgLength bytes UTF-8]
+     *  read group message
+     */
+    private void handleGroupMessageReceived(Packet pkt, ByteBuffer payload) {
+        int groupId = payload.getInt();
+        String message = pkt.payloadAsString();
+        int fromUserId = pkt.from();
+        messages.addMessage(groupId,fromUserId, message);
+        listener.onGroupText(groupId, fromUserId, message);
+    }
+
+
+    /**
      * LIST_CONTACTS reply payload format:
      *   [int count]
      *   repeated count times:
@@ -216,7 +236,14 @@ public class IncomingPacketProcessor implements PacketProcessor {
         listener.onContactsUpdated();
     }
 
-    
+    /**
+     * CREATE_USER reply payload format:
+     * [int userId]
+     */
+    private void handleUserCreated(ByteBuffer payload) {
+        int id =  payload.getInt();
+        Client.getClientState().setClientId(id);
+    }
 
     /**
      * ACK payload format:

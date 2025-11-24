@@ -14,8 +14,8 @@ public class ClientState implements Serializable {
     private ContactRegistry contactRegistry;
     private MessageRegistry messageRegistry;
 
-    public ClientState(int clientId){
-        this.clientId = clientId;
+    public ClientState(){
+        this.clientId = 0;
         groupRegistry = new GroupRegistry();
         contactRegistry = new ContactRegistry();
         messageRegistry = new MessageRegistry();
@@ -24,6 +24,8 @@ public class ClientState implements Serializable {
     public int getClientId(){
         return clientId;
     }
+
+    protected void setClientId(int newClientId) { clientId = newClientId;}
 
     public ContactRegistry getContactRegistry() {
         return contactRegistry;

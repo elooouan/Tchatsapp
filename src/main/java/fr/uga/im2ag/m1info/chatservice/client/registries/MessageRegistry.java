@@ -12,9 +12,9 @@ public class MessageRegistry implements Serializable {
         return Collections.unmodifiableList(convMessages.get(conversationId));
     }
 
-    public void addMessage(int conversationId,Message message){
+    public void addMessage(int conversationId, int from ,String message){
         if(!convMessages.containsKey(conversationId)){convMessages.put(conversationId,new ArrayList<Message>());}
 
-        convMessages.get(conversationId).add(message);
+        convMessages.get(conversationId).add(new Message(from,message));
     }
 }

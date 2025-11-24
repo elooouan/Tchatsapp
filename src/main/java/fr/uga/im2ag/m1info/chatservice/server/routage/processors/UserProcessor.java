@@ -103,6 +103,8 @@ public class UserProcessor implements PacketProcessor {
 
         int id = users.createUser(context.serverState().getIdGenerator().generateId());
         context.sendOk(callerId, "New user " + id + " created");
+        byte[] bytes = ByteBuffer.allocate(4).putInt(id).array();
+        context.send(Packet.createPacket(0, callerId, PacketType.CREATE_USER, bytes));
     }
 
     

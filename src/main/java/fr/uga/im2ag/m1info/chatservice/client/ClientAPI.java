@@ -1,5 +1,6 @@
 package fr.uga.im2ag.m1info.chatservice.client;
 
+import fr.uga.im2ag.m1info.chatservice.common.Message;
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.Packet.PacketBuilder;
 import fr.uga.im2ag.m1info.chatservice.common.PacketSender;
@@ -7,6 +8,7 @@ import fr.uga.im2ag.m1info.chatservice.common.PacketType;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * High-level client API used by the UI / command parser.
@@ -52,6 +54,13 @@ public class ClientAPI {
      */
     public String getPseudo() { return pseudo; }
 
+    /**
+     * Getter for list of messages
+     */
+    public List<Message> getConversation(int conversationId) {
+        return Client.getClientState().getMessageRegistry().getMessages(conversationId);
+    }
+
     // -------------------------------------------------------------------------
     // Incoming side: called by the TCP reader thread (In client)
     // -------------------------------------------------------------------------
@@ -84,6 +93,7 @@ public class ClientAPI {
                 .build();
 
         sender.sendPacket(pkt);
+        Client.getClientState().getMessageRegistry().addMessage(destUserId, Client.getClientState().getClientId(), message);
     }
 
     /**

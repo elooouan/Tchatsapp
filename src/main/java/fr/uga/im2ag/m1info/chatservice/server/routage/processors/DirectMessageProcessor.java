@@ -46,6 +46,6 @@ public class DirectMessageProcessor implements PacketProcessor {
         context.send(pkt);
 
         // Comment/Uncomment this ACK - use this for debugging (on the sender side)
-        context.sendOk(from, "Message sent to group " + to);
+        context.sendOk(from, "Message sent to user " + to);
     }
 }
