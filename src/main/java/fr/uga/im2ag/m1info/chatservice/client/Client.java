@@ -48,6 +48,7 @@ public class Client {
             cnx = new Socket(host,port);
             DataOutputStream dos = new DataOutputStream(cnx.getOutputStream());
             DataInputStream dis = new DataInputStream(cnx.getInputStream());
+
             dos.writeInt(clientState.getClientId());
             dos.flush();
             // read the empty packet and use the recipient id
@@ -209,12 +210,9 @@ public class Client {
             c.loadData(args[0]);
         }
 
-        Scanner sc = new Scanner(System.in);
-    
         // UI listener for incoming events
         ConsoleClientListener ui = new ConsoleClientListener(Client.getClientState().getContactRegistry());
 
-    
         // High-level API (outgoing + incoming decoding)
         ClientAPI api = new ClientAPI(
                 c::sendPacket,   // PacketSender -> use Client.sendPacket
@@ -232,10 +230,9 @@ public class Client {
     
             System.out.println("You are now connected with id: " + Client.getClientState().getClientId());
             System.out.println("Type /help for the list of commands.");
-    
-            // Command parser loop
-            CommandParser parser = new CommandParser(api, sc);
-            parser.run();
+
+            // Lancement de l'interface
+            new CLIInterface(api);
     
             c.disconnect();
             if(args.length == 0){
