@@ -18,6 +18,7 @@ import fr.uga.im2ag.m1info.chatservice.common.PacketType;
 import fr.uga.im2ag.m1info.chatservice.ui.ConsoleClientListener;
 import fr.uga.im2ag.m1info.chatservice.ui.CommandParser;
 
+import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -165,8 +166,8 @@ public class Client {
         return clientState;
     }
 
-    private void saveData(String file){
-        try{
+    private void saveData(String file) {
+        try {
             ObjectOutputStream oos;
 
             FileOutputStream dataFile = new FileOutputStream(file);
@@ -175,10 +176,9 @@ public class Client {
             oos.close();
             dataFile.close();
 
-        }catch (IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     private void saveData(){
@@ -208,6 +208,7 @@ public class Client {
         }else{
             c.loadData(args[0]);
         }
+
         Scanner sc = new Scanner(System.in);
     
         // UI listener for incoming events
@@ -247,6 +248,4 @@ public class Client {
             System.err.println("Connection failed.");
         }
     }
-    
-
 }
