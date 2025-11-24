@@ -280,9 +280,16 @@ public class TchatsAppServer implements PacketSender {
                             }
                         }
                         else if (!clientQueues.containsKey(clientId)) {
-                            LOG.info("Client "+clientId+" is not registered. Closing connexion.");
-                            closeChannel(sc);
-                            return;
+                            ServerState ss = TchatsAppServer.getServerState();
+                            UserRegistry users = ss.getUserRegistry();
+                            //if clientid is in save file but was never connected in th is server runtime
+                            if (users.exists(clientId)) {
+                                clientQueues.put(clientId,new ConcurrentLinkedQueue<>());
+                            }else {
+                                LOG.info("Client " + clientId + " is not registered. Closing connexion.");
+                                closeChannel(sc);
+                                return;
+                            }
                         }
                         // associates the client id to its connection state
                         // if the client is already connected, the new connection is closed.
