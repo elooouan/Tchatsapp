@@ -52,7 +52,7 @@ public class ClientAPI {
     /**
      * Getter for the user's username
      */
-    public String getPseudo() { return pseudo; }
+    public String getPseudo() { return Client.getClientState().getPseudo(); }
 
     /**
      * Getter for list of messages
@@ -248,7 +248,6 @@ public class ClientAPI {
      *   [int nameLen][nameLen bytes UTF-8]
      */
     public void setPseudo(String pseudo) {
-        this.pseudo = pseudo; // for the getter
         byte[] payload = encodeString(pseudo);
 
         Packet pkt = new PacketBuilder(payload.length,

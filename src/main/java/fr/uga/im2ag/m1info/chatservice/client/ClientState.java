@@ -17,6 +17,7 @@ public class ClientState implements Serializable {
 
     public ClientState(){
         this.clientId = 0;
+        this.pseudo = "";
         groupRegistry = new GroupRegistry();
         contactRegistry = new ContactRegistry();
         messageRegistry = new MessageRegistry();
@@ -25,6 +26,8 @@ public class ClientState implements Serializable {
     public int getClientId(){
         return clientId;
     }
+
+    public String getPseudo(){ return pseudo;}
 
     protected void setClientId(int newClientId) { clientId = newClientId;}
 
