@@ -409,7 +409,7 @@ public class TchatsAppServer implements PacketSender {
     }
 
     private void loadData(){
-        File stateFile = new File("state.ser");
+        File stateFile = new File("serverState.ser");
         if(!stateFile.exists()){
             serverState = new ServerState();
             return;
@@ -418,7 +418,7 @@ public class TchatsAppServer implements PacketSender {
         try {
             ObjectInputStream ois;
 
-            FileInputStream dataFile = new FileInputStream("state.ser");
+            FileInputStream dataFile = new FileInputStream("serverState.ser");
             ois = new ObjectInputStream(dataFile);
             serverState = (ServerState) ois.readObject();
             ois.close();
