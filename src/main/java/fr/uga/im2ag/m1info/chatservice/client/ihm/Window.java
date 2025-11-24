@@ -12,5 +12,8 @@ public class Window extends JFrame {
         pack();
         setSize(new Dimension(800, 600));
         setVisible(true);
+
+        String input = JOptionPane.showInputDialog(this, "Quel est votre ID ? (0 pour en créer un)", null);
+        Integer id = Integer.valueOf(input);
     }
 }
