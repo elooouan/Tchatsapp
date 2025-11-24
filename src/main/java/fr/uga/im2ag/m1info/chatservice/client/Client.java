@@ -119,10 +119,11 @@ public class Client {
     }
 
     //TODO make loadData work later
-    private void loadData(){
+    private void loadData(int id){
         File stateFile = new File("clientData.ser");
         if(!stateFile.exists()){
             clientState = new ClientState();
+            clientState.setClientId(id);
             return;
         }
 
@@ -148,12 +149,15 @@ public class Client {
     /** A bsic client in command line **/
     public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
+        System.out.println("Your id ? (0 to create a new account)");
+        int clientId = sc.nextInt();
+        sc.nextLine(); // consume end of line
 
         // Low-level TCP client
         Client c = new Client();
 
         //TODO make load data work and move it
-        c.loadData();
+        c.loadData(clientId);
     
         // UI listener for incoming events
         ConsoleClientListener ui = new ConsoleClientListener(Client.getClientState().getContactRegistry());

@@ -167,6 +167,7 @@ public class TchatsAppServer implements PacketSender {
         saveData();
         started=false;
         selector.wakeup();
+        saveData();
     }
 
     public void setClientIdGenerator(IdGenerator gen) {
@@ -450,8 +451,7 @@ public class TchatsAppServer implements PacketSender {
         // Create server
         TchatsAppServer s =  new TchatsAppServer(port, workers);
 
-        // Save initial state (NEED TO IMPLEMENT)
-        s.saveData();
+        Runtime.getRuntime().addShutdownHook(new Thread(s::stop));
 
         // Start the server (blocking)
         s.start();
