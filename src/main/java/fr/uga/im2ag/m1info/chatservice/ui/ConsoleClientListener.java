@@ -12,16 +12,10 @@ import java.util.Set;
  */
 public class ConsoleClientListener implements IncomingPacketProcessor.Listener {
 
-    private final ContactRegistry contacts;
-
     private ClientAPI api;
 
     public void setApi(ClientAPI api) {
         this.api = api;
-    }
-
-    public ConsoleClientListener(ContactRegistry contacts) {
-        this.contacts = contacts;
     }
 
     @Override
@@ -63,15 +57,6 @@ public class ConsoleClientListener implements IncomingPacketProcessor.Listener {
         }
 
         System.out.println("[Group " + groupId + " ] " + title + " was created with " + memberList.toString());
-    }
-
-    @Override
-    public void onContactsUpdated() {
-        System.out.println("[Contacts]:");
-
-        for (int id : contacts.getContacts()) {
-            System.out.println("  " + id + " -> " + contacts.resolveUserName(id));
-        }
     }
 
     @Override

@@ -9,7 +9,8 @@ import fr.uga.im2ag.m1info.chatservice.client.registries.MessageRegistry;
 import java.io.Serializable;
 
 public class ClientState implements Serializable {
-    int clientId;
+    private int clientId;
+    private String pseudo;
     private GroupRegistry groupRegistry;
     private ContactRegistry contactRegistry;
     private MessageRegistry messageRegistry;

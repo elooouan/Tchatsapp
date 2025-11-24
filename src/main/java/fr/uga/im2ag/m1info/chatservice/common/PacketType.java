@@ -19,7 +19,6 @@ public enum PacketType {
     SET_PSEUDO,
     ADD_CONTACT,
     CREATE_USER,
-    LIST_CONTACTS,
 
     // IncomingPacketProcessor -> ClientSide ONLY
     ACK,

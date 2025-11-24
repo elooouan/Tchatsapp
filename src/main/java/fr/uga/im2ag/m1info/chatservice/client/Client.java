@@ -211,7 +211,7 @@ public class Client {
         }
 
         // UI listener for incoming events
-        ConsoleClientListener ui = new ConsoleClientListener(Client.getClientState().getContactRegistry());
+        ConsoleClientListener ui = new ConsoleClientListener();
 
         // High-level API (outgoing + incoming decoding)
         ClientAPI api = new ClientAPI(

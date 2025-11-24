@@ -298,7 +298,7 @@ private void handleCreateGroup(String args) {
     /**
      * /contacts
      */
-    private void handleContacts() { api.requestContacts(); }
+    private void handleContacts() { return;}
     
 
     private void printHelp() {

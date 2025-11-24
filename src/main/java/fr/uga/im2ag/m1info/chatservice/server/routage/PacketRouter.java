@@ -40,7 +40,6 @@ public class PacketRouter {
         strategies.put(PacketType.SET_PSEUDO,    user);
         strategies.put(PacketType.ADD_CONTACT,   user);
         strategies.put(PacketType.CREATE_USER,   user);
-        strategies.put(PacketType.LIST_CONTACTS, user);
     }
 
     public PacketProcessor resolve(Packet p) {

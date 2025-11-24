@@ -30,7 +30,6 @@ public class IncomingPacketProcessor implements PacketProcessor {
         void onGroupRenamed(int groupId, String title);
         void onGroupDeleted(int groupId);
         void onGroupCreated(int groupId, String title, int adminId, Set<Integer> membersIds);
-        void onContactsUpdated();
         void onACK(String message);
         void onError(String message);
         void onUnknownPacket(Packet pkt);
@@ -61,7 +60,6 @@ public class IncomingPacketProcessor implements PacketProcessor {
             case TEXT_USER -> handleDirectText(pkt, payload);
             case TEXT_GROUP -> handleGroupText(pkt, payload);
             case GROUP_EVENT -> handleGroupEvent(pkt, payload);
-            case LIST_CONTACTS -> handleListContacts(payload);
             case CREATE_USER -> handleUserCreated(payload);
             case ACK -> handleACK(pkt, payload);
             case ERROR -> handleError(pkt, payload);
@@ -208,32 +206,6 @@ public class IncomingPacketProcessor implements PacketProcessor {
         int fromUserId = pkt.from();
         messages.addMessage(groupId,fromUserId, message);
         listener.onGroupText(groupId, fromUserId, message);
-    }
-
-
-    /**
-     * LIST_CONTACTS reply payload format:
-     *   [int count]
-     *   repeated count times:
-     *     [int userId]
-     *     [int nameLen]
-     *     [nameLen bytes UTF-8]
-     */
-    private void handleListContacts(ByteBuffer payload) {
-        contacts.clear();
-
-        int count = payload.getInt();
-        for (int i = 0; i < count; i++) {
-            int userId   = payload.getInt();
-            int nameLen  = payload.getInt();
-            byte[] nameBytes = new byte[nameLen];
-            payload.get(nameBytes);
-
-            String pseudo = new String(nameBytes, StandardCharsets.UTF_8);
-            contacts.addContact(userId, pseudo);
-        }
-
-        listener.onContactsUpdated();
     }
 
     /**
