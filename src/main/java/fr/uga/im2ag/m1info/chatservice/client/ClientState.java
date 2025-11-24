@@ -29,6 +29,8 @@ public class ClientState implements Serializable {
 
     public String getPseudo(){ return pseudo;}
 
+    public void setPseudo(String pseudo) { this.pseudo = pseudo; }
+
     protected void setClientId(int newClientId) { clientId = newClientId;}
 
     public ContactRegistry getContactRegistry() {

@@ -58,29 +58,34 @@ public class UserProcessor implements PacketProcessor {
             context.sendError(callerId, "Unknown callerId " + callerId);
         }
 
+        users.setPseudo(callerId,newPseudo);
+
         Set<User> haveYourContact = contacts.getUserWhoHaveYourContact(users.getUser(callerId));
 
-        // Locally
-        users.setPseudo(callerId, newPseudo);
+        if(haveYourContact != null) {
 
-        ByteBuffer buf = ByteBuffer.allocate(
-            Integer.BYTES * 2 +
-            newPseudo.length()
-        );
+            // Locally
+            users.setPseudo(callerId, newPseudo);
 
-        // Build payload
-        buf.putInt(callerId);
-        buf.putInt(newPseudo.length());
-        buf.put(newPseudo.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            ByteBuffer buf = ByteBuffer.allocate(
+                    Integer.BYTES * 2 +
+                            newPseudo.length()
+            );
 
-        // Create a packet to inform every User who has callerId in his contacts of the username update
-        // payload format:
-        // [callerId:int][newPseudoLen:int][newPseudo:bytes]
-        for (User user : haveYourContact) {
-            int destId = user.getUserId();
-            Packet pkt = Packet.createPacket(0, destId, PacketType.SET_PSEUDO, buf.array());
+            // Build payload
+            buf.putInt(callerId);
+            buf.putInt(newPseudo.length());
+            buf.put(newPseudo.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
-            context.send(pkt);
+            // Create a packet to inform every User who has callerId in his contacts of the username update
+            // payload format:
+            // [callerId:int][newPseudoLen:int][newPseudo:bytes]
+            for (User user : haveYourContact) {
+                int destId = user.getUserId();
+                Packet pkt = Packet.createPacket(0, destId, PacketType.SET_PSEUDO, buf.array());
+
+                context.send(pkt);
+            }
         }
 
         context.sendOk(callerId, "New pseudo set: " + newPseudo);

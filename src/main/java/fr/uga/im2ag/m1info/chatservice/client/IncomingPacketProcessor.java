@@ -105,8 +105,14 @@ public class IncomingPacketProcessor implements PacketProcessor {
         int contactId = payload.getInt();
         String newPseudo = readString(payload);
 
-        // Update this client's registry with the new contact Id
-        contacts.setPseudo(contactId, newPseudo);
+        ClientState cs = Client.getClientState();
+
+        if(contactId == cs.getClientId()){
+            cs.setPseudo(newPseudo);
+        }else{
+            // Update this client's registry with the new contact Id
+            contacts.setPseudo(contactId, newPseudo);
+        }
     }
 
     /**
