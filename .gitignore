@@ -126,11 +126,17 @@ fabric.properties
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# List files
+*.lst
+
+# State files (serve as our memory)
+*.ser
+
+# Virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
 
-terget/
+target/
 
 start_client.sh
 start_server.sh

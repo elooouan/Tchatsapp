@@ -11,12 +11,17 @@
 
 package fr.uga.im2ag.m1info.chatservice.client;
 
-import fr.uga.im2ag.m1info.chatservice.client.ihm.Window;
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
+import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
+
+import fr.uga.im2ag.m1info.chatservice.common.PacketType;
+import fr.uga.im2ag.m1info.chatservice.ui.ConsoleClientListener;
+import fr.uga.im2ag.m1info.chatservice.ui.CommandParser;
 
 import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.Scanner;
 
 /**
@@ -25,17 +30,11 @@ import java.util.Scanner;
  */
 public class Client {
 
-    private int clientId;
     private Socket cnx;
-    private fr.uga.im2ag.m1info.chatservice.common.PacketProcessor processor;
+    private PacketProcessor processor;
     private static ClientState clientState;
 
-    public Client() {
-        this(0);
-    }
-    public Client(int clientId) {
-        this.clientId=clientId;
-    }
+    public Client() {}
 
     /**
      * Attemps to connect to a given server.
@@ -46,13 +45,13 @@ public class Client {
     public boolean connect(String host, int port) {
         if (cnx!=null && cnx.isConnected()) return false;
         try {
-            cnx = new Socket("localhost",1666);
+            cnx = new Socket(host,port);
             DataOutputStream dos = new DataOutputStream(cnx.getOutputStream());
             DataInputStream dis = new DataInputStream(cnx.getInputStream());
-            dos.writeInt(clientId);
+            dos.writeInt(clientState.getClientId());
             dos.flush();
             // read the empty packet and use the recipient id
-            clientId=Packet.readFrom(dis).to();
+            clientState.setClientId(Packet.readFrom(dis).to());
 
             // reception thread
             new Thread(() ->{
@@ -75,7 +74,7 @@ public class Client {
     }
 
     public int getClientId() {
-        return clientId;
+        return clientState.getClientId();
     }
 
     /**
@@ -101,15 +100,17 @@ public class Client {
         } catch (IOException e) {/* ignored */}
     }
 
-    public boolean sendPacket(Packet m) {
-        //if (m.from()!=clientId) throw new RuntimeException("Message from field must be equals to clientId");
+    public boolean sendPacket(Packet pkt) {
         try {
             DataOutputStream dos = new DataOutputStream(cnx.getOutputStream());
-            dos.writeInt(m.payloadSize());
-            dos.writeInt(m.to());
-            byte[] msg = new byte[m.payloadSize()];
-            m.getPayload().get(msg);
-            dos.write(msg);
+
+            // Serialize the full packet exactly as PacketBuilder created it:
+            // [length][from][to][type][payload...]
+            ByteBuffer buf = pkt.asByteBuffer();
+            byte[] data = new byte[buf.remaining()];
+            buf.get(data);
+            dos.write(data);
+
             dos.flush();
             return true;
         } catch (IOException e) {
@@ -118,18 +119,17 @@ public class Client {
         }
     }
 
-    private void loadData(){
-        File stateFile = new File("clientData.ser");
+    private void loadData(String file){
+        File stateFile = new File(file);
         if(!stateFile.exists()){
-            // TODO: send packet to server to get a new id
-            //clientState = new ClientState(id);
-            //return;
+            clientState = new ClientState();
+            return;
         }
 
         try {
             ObjectInputStream ois;
 
-            FileInputStream dataFile = new FileInputStream("clientData.ser");
+            FileInputStream dataFile = new FileInputStream(file);
             ois = new ObjectInputStream(dataFile);
             clientState = (ClientState) ois.readObject();
             ois.close();
@@ -141,51 +141,111 @@ public class Client {
 
     }
 
+    private void loadData(){
+        File stateFile = new File("clientState.ser");
+        if(!stateFile.exists()){
+            clientState = new ClientState();
+            return;
+        }
+
+        try {
+            ObjectInputStream ois;
+
+            FileInputStream dataFile = new FileInputStream("clientState.ser");
+            ois = new ObjectInputStream(dataFile);
+            clientState = (ClientState) ois.readObject();
+            ois.close();
+            dataFile.close();
+
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static ClientState getClientState(){
         return clientState;
     }
 
-    /** A bsic client in command line **/
-    public static void main(String[] args) {
+    private void saveData(String file) {
+        try {
+            ObjectOutputStream oos;
 
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new Window();
-            }
-        });
+            FileOutputStream dataFile = new FileOutputStream(file);
+            oos = new ObjectOutputStream(dataFile);
+            oos.writeObject(clientState);
+            oos.close();
+            dataFile.close();
 
-        /*
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Votre id ? (0 pour en créer un nouveau)");
-        int clientId =  sc.nextInt();
-
-        Client c = new Client(clientId);
-        c.setPacketProcessor(msg -> {
-            byte[] b = new byte[msg.getPayload().capacity()];
-            msg.getPayload().get(b);
-            System.out.println("Message from " + msg.from() + " to " + msg.to() + " : " + new String(b));
-        });
-
-        if (c.connect("localhost",1666)) {
-
-            clientId = c.getClientId();
-            System.out.println("Vous êtes connecté avec l'id " + clientId);
-           // Packet m = Packet.createTextMessage(48, 2, "coucou 2 comment vas tu ?");
-
-            //c.sendPacket(m);
-
-            while (true) {
-                System.out.println("A qui envoyer ? (0 pour quitter)");
-                int to = sc.nextInt();sc.nextLine();
-                if (to==0) break;
-                System.out.println("Votre message :");
-                String msg = sc.nextLine();
-                //c.sendPacket(Packet.createTextMessage(c.getClientId(), to, msg));
-            }
-            c.disconnect();
-            System.exit(0);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        */
+    }
+
+    private void saveData(){
+        try{
+            ObjectOutputStream oos;
+
+            FileOutputStream dataFile = new FileOutputStream("clientState.ser");
+            oos = new ObjectOutputStream(dataFile);
+            oos.writeObject(clientState);
+            oos.close();
+            dataFile.close();
+
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /** A bsic client in command line **/
+    public static void main(String[] args) throws IOException {
+
+        // Low-level TCP client
+        Client c = new Client();
+
+        if(args.length == 0){
+            c.loadData();
+        }else{
+            c.loadData(args[0]);
+        }
+
+        Scanner sc = new Scanner(System.in);
+    
+        // UI listener for incoming events
+        ConsoleClientListener ui = new ConsoleClientListener(Client.getClientState().getContactRegistry());
+
+    
+        // High-level API (outgoing + incoming decoding)
+        ClientAPI api = new ClientAPI(
+                c::sendPacket,   // PacketSender -> use Client.sendPacket
+                Client.getClientState().getClientId(),
+                ui               // IncomingPacketProcessor.Listener
+        );
+    
+        // Tell Client to forward incoming packets to ClientAPI
+        c.setPacketProcessor(api::handleIncoming);
+    
+        // Connect
+        if (c.connect("localhost", 1666)) {
+            // Server may assign a new id
+            api.setClientId(Client.getClientState().getClientId());
+    
+            System.out.println("You are now connected with id: " + Client.getClientState().getClientId());
+            System.out.println("Type /help for the list of commands.");
+    
+            // Command parser loop
+            CommandParser parser = new CommandParser(api, sc);
+            parser.run();
+    
+            c.disconnect();
+            if(args.length == 0){
+                c.saveData();
+            }else{
+                c.saveData(args[0]);
+            }
+            System.exit(0);
+        } else {
+            System.err.println("Connection failed.");
+        }
     }
 }

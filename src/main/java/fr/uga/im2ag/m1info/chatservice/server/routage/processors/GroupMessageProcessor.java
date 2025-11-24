@@ -1,15 +1,13 @@
 package fr.uga.im2ag.m1info.chatservice.server.routage.processors;
 
-import fr.uga.im2ag.m1info.chatservice.common.Packet;
+import fr.uga.im2ag.m1info.chatservice.common.*;
 import fr.uga.im2ag.m1info.chatservice.common.Packet.PacketBuilder;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
-import fr.uga.im2ag.m1info.chatservice.common.Group;
-import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
-import fr.uga.im2ag.m1info.chatservice.common.PacketType;
-import fr.uga.im2ag.m1info.chatservice.server.GroupRegistry;
-import fr.uga.im2ag.m1info.chatservice.server.UserRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.registries.GroupRegistry;
+import fr.uga.im2ag.m1info.chatservice.server.registries.UserRegistry;
 import fr.uga.im2ag.m1info.chatservice.server.routage.StrategyContext;
 
 /*
@@ -29,7 +27,7 @@ public class GroupMessageProcessor implements PacketProcessor {
     @Override
     public void process(Packet pkt) {
         // Sanity check: this processor should only handle TEXT_GROUP packets
-        if (pkt.type() != PacketType.TEXT_GROUP.ordinal()) {
+        if (pkt.type() != PacketType.TEXT_GROUP) {
             throw new IllegalArgumentException(
                 "GroupMessageProcessor received non TEXT_GROUP packet, type=" + pkt.type()
             );
@@ -58,20 +56,23 @@ public class GroupMessageProcessor implements PacketProcessor {
             throw new IllegalArgumentException("Empty group message payload.");
         }
 
-        ByteBuffer readOnly = payload.asReadOnlyBuffer(); // Read Only duplicate of the payload to avoid interfering with the original buffer
-        byte[] payloadBytes = new byte[readOnly.remaining()]; // Allocate a byte array of size duplicate buffer
-        readOnly.get(payloadBytes); // Read the entire payload into the byte array: payloadBytes 
-        int payloadSize = payloadBytes.length;
+        String message = context.readString(payload);
+        ByteBuffer bufferToSend = ByteBuffer.allocate(1+ // GROUP_EVENT subtype
+                                                        Integer.BYTES+ //groupId
+                                                        Integer.BYTES+ //message length
+                                                        message.length() // message
+        );
+        bufferToSend.put(GroupEventType.MESSAGE_RECIEVED);
+        bufferToSend.putInt(groupId);
+        bufferToSend.putInt(message.length());
+        bufferToSend.put(message.getBytes(StandardCharsets.UTF_8));
+        byte[] payloadToSend = bufferToSend.array();
 
-        // Broadcast to all members of the group except the sender
+        // Broadcast to all members of the group
         for (int memberId : group.getMembers()) {
-            if (memberId == from) continue;
             if (!users.exists(memberId)) continue; // Safety net, deleted users should be automatically removed from all groups and contacts
-            
-            PacketBuilder pb = new PacketBuilder(payloadSize, from, memberId);
-            pb.setPayload(payloadBytes);
 
-            Packet out = pb.build();
+            Packet out = Packet.createPacket(from,memberId,PacketType.GROUP_EVENT,payloadToSend);
             context.send(out);
         }
 

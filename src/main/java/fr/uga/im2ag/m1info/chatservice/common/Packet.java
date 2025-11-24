@@ -13,6 +13,7 @@ package fr.uga.im2ag.m1info.chatservice.common;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Represents a packet sent between the client and the server (or vice versa)
@@ -23,7 +24,7 @@ public class Packet {
 
     // private static final int OFFSET_LENGTH = 0;
     private static final int OFFSET_FROM = Integer.BYTES;
-    private static final int OFFSET_TO = 2 * Integer.BYTES;
+    private static final int OFFSET_TO   = 2 * Integer.BYTES;
     private static final int OFFSET_TYPE = 3 * Integer.BYTES;
     private final static int HEADER_SIZE = 4 * Integer.BYTES;
 
@@ -35,12 +36,26 @@ public class Packet {
 
         private ByteBuffer buf;
 
+        // Incoming Packets
+
+        public PacketBuilder(int payloadSize) {
+            // Used when reconstructing a packet from the network:
+            // we already read the length, now we need to read:
+            // [from][to][type][payload...]
+            buf = ByteBuffer.allocate(payloadSize + HEADER_SIZE);
+            buf.putInt(payloadSize); // write the length at offset 0
+            // position is now 4; the remaining bytes (HEADER_SIZE - 4 + payloadSize)
+            // will be filled via fillFrom(...)
+        }
+        
+
+        // Outgoing packets
+
         public PacketBuilder(int payloadSize, int from) {
             buf = ByteBuffer.allocate(payloadSize + HEADER_SIZE);
             buf.putInt(payloadSize);
             buf.putInt(from);
         }
-
 
         public PacketBuilder(int dataSize, int from, int to) {
             this(dataSize, from);
@@ -62,8 +77,8 @@ public class Packet {
             return this;
         }
 
-        public PacketBuilder setType(int type) {
-            buf.putInt(OFFSET_TYPE, type);
+        public PacketBuilder setType(PacketType type) {
+            buf.putInt(OFFSET_TYPE, type.ordinal());
             return this;
         }
 
@@ -110,7 +125,7 @@ public class Packet {
         }
     }
 
-    // ORDER : payload length(4) - from(4) - to(4) - payload(size)
+    // ORDER : payload_size(4) - from(4) - to(4) - type(4) - payload(payload_size)
     private final ByteBuffer buffer;
 
 
@@ -126,8 +141,8 @@ public class Packet {
         return buffer.getInt(OFFSET_TO);
     }
 
-    public int type() {
-        return buffer.getInt(OFFSET_TYPE);
+    public PacketType type() {
+        return PacketType.convertIntToPacketType(buffer.getInt(OFFSET_TYPE));
     }
 
     public int payloadSize() {
@@ -149,6 +164,13 @@ public class Packet {
         return buffer.duplicate().rewind();
     }
 
+    public String payloadAsString() {
+        ByteBuffer payload = getPayload().asReadOnlyBuffer();
+        payload.rewind();
+        byte[] bytes = new byte[payload.remaining()];
+        payload.get(bytes);
+        return new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+    }
 
     public static Packet readFrom(DataInputStream dis) throws IOException {
         int s = dis.readInt();
@@ -159,8 +181,12 @@ public class Packet {
         return new Packet(buf);
     }
 
-    public static Packet createPacket(int from, int to, String content, PacketType type) {
+    public static Packet createPacket(int from, int to, PacketType type, String content) {
         byte[] payload = content.getBytes();
         return new PacketBuilder(payload.length, from, to, type.ordinal()).setPayload(payload).build();
+    }
+
+    public static Packet createPacket(int from, int to, PacketType type, byte[] content){
+        return new PacketBuilder(content.length, from, to, type.ordinal()).setPayload(content).build();
     }
 }

@@ -1,7 +1,6 @@
 package fr.uga.im2ag.m1info.chatservice.server.routage;
 
 import fr.uga.im2ag.m1info.chatservice.common.*;
-import fr.uga.im2ag.m1info.chatservice.server.ServerState;
 import fr.uga.im2ag.m1info.chatservice.server.routage.processors.*;
 
 import java.util.HashMap;
@@ -12,69 +11,41 @@ import java.util.Map;
  */
 
 public class PacketRouter {
-    private PacketSender sender;
-    private ServerState serverState;
     private final Map<PacketType, PacketProcessor> strategies;
 
     StrategyContext context;
-    // Envoie les paquets au bon processor
+
+    // Send packets to the correct processor
     public PacketRouter(StrategyContext context) {
         this.context = context;
         strategies = new HashMap<>();
 
         AdminProcessor admin = new AdminProcessor(context);
         UserProcessor user = new UserProcessor(context);
-        ErrorProcessor error = new ErrorProcessor(context);
 
+        // DirectMessageProcessor
         strategies.put(PacketType.TEXT_USER,   new DirectMessageProcessor(context));
+
+        // GroupMessageProcessor
         strategies.put(PacketType.TEXT_GROUP,  new GroupMessageProcessor(context));
 
-        strategies.put(PacketType.CREATE_GROUP, admin);
-        strategies.put(PacketType.ADD_MEMBER,   admin);
-        strategies.put(PacketType.REMOVE_MEMBER,admin);
-        strategies.put(PacketType.RENAME_GROUP, admin);
-        strategies.put(PacketType.DELETE_GROUP, admin);
+        // AdminProcessor
+        strategies.put(PacketType.CREATE_GROUP,  admin);
+        strategies.put(PacketType.ADD_MEMBER,    admin);
+        strategies.put(PacketType.REMOVE_MEMBER, admin);
+        strategies.put(PacketType.RENAME_GROUP,  admin);
+        strategies.put(PacketType.DELETE_GROUP,  admin);
 
-        strategies.put(PacketType.SET_PSEUDO,  user);
-        strategies.put(PacketType.ADD_CONTACT, user);
-        strategies.put(PacketType.CREATE_USER, user);
-
-        strategies.put(PacketType.ERROR,       error);
+        // UserProcessor
+        strategies.put(PacketType.SET_PSEUDO,    user);
+        strategies.put(PacketType.ADD_CONTACT,   user);
+        strategies.put(PacketType.CREATE_USER,   user);
+        strategies.put(PacketType.LIST_CONTACTS, user);
     }
-
-    /*
-    public void route(Packet pkt) {
-        PacketProcessor strategy;
-        int type = pkt.getType();
-
-        switch (type) {
-            // l'id est un id d'user
-            case PacketType.TEXT_USER:
-                strategy = new DirectMessageProcessor(sender, serverState);
-                // l'id est un id de groupe
-            case PacketType.TEXT_GROUP:
-                strategy = new GroupMessageProcessor(sender, serverState);
-            case PacketType.CREATE_GROUP:
-            case PacketType.ADD_MEMBER:
-            case PacketType.REMOVE_MEMBER:
-            case PacketType.RENAME_GROUP:
-            case PacketType.DELETE_GROUP:
-                strategy = new AdminProcessor(serverState);
-            case PacketType.SET_PSEUDO:
-            case PacketType.ADD_CONTACT:
-                strategy = new UserProcessor();
-            case PacketType.ERROR:
-            default:
-                // Meme pas de type correct dans le paquet, erreur interne, errorProcessor aussi ?
-                strategy = new ErrorProcessor(sender);
-        }
-        strategy.process(pkt);
-    }
-     */
 
     public PacketProcessor resolve(Packet p) {
-        int type = p.type();
-        PacketType typeComparison = PacketType.convertIntToPacketType(type);
-        return strategies.getOrDefault(typeComparison, new ErrorProcessor(context));
+        PacketType type = p.type();
+        // Might need error handling -> UnknownPacketTypeProcessor
+        return strategies.get(type);
     }
 }

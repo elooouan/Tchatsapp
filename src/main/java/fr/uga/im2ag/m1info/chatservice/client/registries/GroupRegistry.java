@@ -1,26 +1,35 @@
-package fr.uga.im2ag.m1info.chatservice.server;
+package fr.uga.im2ag.m1info.chatservice.client.registries;
 
 import fr.uga.im2ag.m1info.chatservice.common.Group;
+import fr.uga.im2ag.m1info.chatservice.server.IdGenerator;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class GroupRegistry implements Serializable {
-    private Map<Integer, Group> groups = new HashMap<>();
-    IdGenerator idGenerator;
+    private Map<Integer, Group> groups;
 
-
-    private GroupRegistry(){}
-
-    public GroupRegistry(IdGenerator idGenerator) {
-        this.idGenerator = idGenerator;
+    public GroupRegistry(){
+        groups = new HashMap<>();
     }
 
-    public int createGroup(String title, int adminId){
-        int groupId = idGenerator.generateId();
+    public int createGroup(int groupId, String title, int adminId){
         groups.put(groupId, new Group(groupId, title, adminId)); // Adds the admin
-        
         return groupId;
+    }
+
+    // Create a group initially comprised of a list of members
+    public Group createGroup(int groupId, String title, int adminId, Set<Integer> membersId) {
+        groups.put(groupId, new Group(groupId, title, adminId));
+
+        for (int member : membersId) {
+            groups.get(groupId).addMember(member);
+        }
+
+        return groups.get(groupId);
     }
 
     public boolean exists(int groupId){ return groups.containsKey(groupId); }
