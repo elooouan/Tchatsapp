@@ -49,6 +49,7 @@ public class UserProcessor implements PacketProcessor {
      */
     private void handleSetPseudo(int callerId, ByteBuffer payload) {
         String newPseudo = context.readString(payload);
+
         if (newPseudo == null || newPseudo.isEmpty()) {
             context.sendError(callerId, "Invalid SET_PSEUDO payload.");
         }
@@ -57,7 +58,31 @@ public class UserProcessor implements PacketProcessor {
             context.sendError(callerId, "Unknown callerId " + callerId);
         }
 
+        Set<User> haveYourContact = contacts.getUserWhoHaveYourContact(users.getUser(callerId));
+
+        // Locally
         users.setPseudo(callerId, newPseudo);
+
+        ByteBuffer buf = ByteBuffer.allocate(
+            Integer.BYTES * 2 +
+            newPseudo.length()
+        );
+
+        // Build payload
+        buf.putInt(callerId);
+        buf.putInt(newPseudo.length());
+        buf.put(newPseudo.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        // Create a packet to inform every User who has callerId in his contacts of the username update
+        // payload format:
+        // [callerId:int][newPseudoLen:int][newPseudo:bytes]
+        for (User user : haveYourContact) {
+            int destId = user.getUserId();
+            Packet pkt = Packet.createPacket(0, destId, PacketType.SET_PSEUDO, buf.array());
+
+            context.send(pkt);
+        }
+
         context.sendOk(callerId, "New pseudo set: " + newPseudo);
     }
 
@@ -82,6 +107,25 @@ public class UserProcessor implements PacketProcessor {
         User newContact = users.getUser(contactId);
 
         contacts.addContact(caller, newContact);
+
+        // Notify client of the new Contact's pseudo
+        // Payload format:
+        // [contactId:int][pseudoLen:int][pseudo:bytes]
+        String pseudo = newContact.getPseudo();
+        if (pseudo == null) pseudo = "";
+
+        ByteBuffer buf = ByteBuffer.allocate(
+            Integer.BYTES * 2 +
+            pseudo.length()
+        );
+
+        buf.putInt(contactId);
+        buf.putInt(pseudo.length());
+        buf.put(pseudo.getBytes((java.nio.charset.StandardCharsets.UTF_8)));
+
+        Packet pkt = Packet.createPacket(0, callerId, PacketType.ADD_CONTACT, buf.array());
+        context.send(pkt);
+
         context.sendOk(callerId,
                 "New contactId " + contactId + " added to userId " + callerId + "'s contacts list");
     }

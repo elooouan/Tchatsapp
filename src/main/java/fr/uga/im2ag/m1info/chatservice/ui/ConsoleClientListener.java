@@ -60,6 +60,10 @@ public class ConsoleClientListener implements IncomingPacketProcessor.Listener {
     }
 
     @Override
+    public void onContactAdded(int contactId, String pseudo) {
+        System.out.println("[Contact " + contactId + " was added]");
+    }
+
     public void onACK(String message) {
         System.err.println("[ACK] " + message);
     }

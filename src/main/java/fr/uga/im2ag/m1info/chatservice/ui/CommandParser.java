@@ -49,14 +49,7 @@ public class CommandParser {
             self = "";
         }
 
-        String peerPart = "";
-        if (lastDirectTargetId != null) {
-            // use contacts mapping: name if in contacts, else "#id"
-            String peerName = api.resolveUserName(lastDirectTargetId);
-            peerPart = " -> " + peerName;
-        }
-
-        return self + peerPart + "> ";
+        return self + "> ";
     }
     
 
@@ -298,7 +291,11 @@ private void handleCreateGroup(String args) {
     /**
      * /contacts
      */
-    private void handleContacts() { return;}
+    private void handleContacts() {
+        for (int contactPseudo : api.requestContacts()) {
+            System.out.println(contactPseudo + " -> "+  api.resolveUserName(contactPseudo));
+        };
+    }
     
 
     private void printHelp() {

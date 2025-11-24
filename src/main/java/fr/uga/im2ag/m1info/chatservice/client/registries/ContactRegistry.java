@@ -43,4 +43,12 @@ public class ContactRegistry implements Serializable {
         String name = contacts.get(id);
         return (name == null || name.isBlank()) ? "" + id : name;
     }
+
+    /**
+     * Update a contact's pseudo
+     */
+    public void setPseudo(int contactId, String newPseudo) {
+        if (contacts.get(contactId) == null || newPseudo.isEmpty()) return;
+        contacts.put(contactId, newPseudo);
+    }
 }

@@ -1,5 +1,6 @@
 package fr.uga.im2ag.m1info.chatservice.client;
 
+import fr.uga.im2ag.m1info.chatservice.client.registries.ContactRegistry;
 import fr.uga.im2ag.m1info.chatservice.common.Message;
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.Packet.PacketBuilder;
@@ -9,6 +10,7 @@ import fr.uga.im2ag.m1info.chatservice.common.PacketType;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Set;
 
 /**
  * High-level client API used by the UI / command parser.
@@ -54,9 +56,6 @@ public class ClientAPI {
      */
     public String getPseudo() { return Client.getClientState().getPseudo(); }
 
-    /**
-     * Getter for list of messages
-     */
     public List<Message> getConversation(int conversationId) {
         return Client.getClientState().getMessageRegistry().getMessages(conversationId);
     }
@@ -93,7 +92,6 @@ public class ClientAPI {
                 .build();
 
         sender.sendPacket(pkt);
-        Client.getClientState().getMessageRegistry().addMessage(destUserId, Client.getClientState().getClientId(), message);
     }
 
     /**
@@ -278,6 +276,18 @@ public class ClientAPI {
                 .build();
 
         sender.sendPacket(pkt);
+    }
+
+    /**
+     * LIST_CONTACTS
+     * payload: empty
+     *
+     * Ask server to send the contact list
+     */
+    public Set<Integer> requestContacts() {
+        ContactRegistry contactRegistry = Client.getClientState().getContactRegistry();
+        Set<Integer> contactIds = contactRegistry.getContacts();
+        return contactIds;
     }
 
     // -------------------------------------------------------------------------
