@@ -58,24 +58,27 @@ public class UserProcessor implements PacketProcessor {
             context.sendError(callerId, "Unknown callerId " + callerId);
         }
 
+
+        // Locally
         users.setPseudo(callerId,newPseudo);
+
 
         Set<User> haveYourContact = contacts.getUserWhoHaveYourContact(users.getUser(callerId));
 
+        ByteBuffer buf = ByteBuffer.allocate(
+                Integer.BYTES * 2 +
+                        newPseudo.length()
+        );
+
+        // Build payload
+        buf.putInt(callerId);
+        buf.putInt(newPseudo.length());
+        buf.put(newPseudo.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        context.send(Packet.createPacket(0,callerId,PacketType.SET_PSEUDO,buf.array()));
+
         if(haveYourContact != null) {
 
-            // Locally
-            users.setPseudo(callerId, newPseudo);
-
-            ByteBuffer buf = ByteBuffer.allocate(
-                    Integer.BYTES * 2 +
-                            newPseudo.length()
-            );
-
-            // Build payload
-            buf.putInt(callerId);
-            buf.putInt(newPseudo.length());
-            buf.put(newPseudo.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
             // Create a packet to inform every User who has callerId in his contacts of the username update
             // payload format:
