@@ -14,15 +14,14 @@ package fr.uga.im2ag.m1info.chatservice.client;
 import fr.uga.im2ag.m1info.chatservice.common.Packet;
 import fr.uga.im2ag.m1info.chatservice.common.PacketProcessor;
 
-import fr.uga.im2ag.m1info.chatservice.common.PacketType;
-import fr.uga.im2ag.m1info.chatservice.ui.ConsoleClientListener;
-import fr.uga.im2ag.m1info.chatservice.ui.CommandParser;
+import fr.uga.im2ag.m1info.chatservice.ui.SwingChatWindow;
 
-import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.util.Scanner;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import javax.swing.SwingUtilities;
 
 /**
  * A basic client for Tchatsapp.
@@ -198,12 +197,13 @@ public class Client {
 
     }
 
-    /** A bsic client in command line **/
+    /** GUI client **/
     public static void main(String[] args) throws IOException {
 
         // Low-level TCP client
         Client c = new Client();
 
+        // Load state (client id, etc.)
         if(args.length == 0){
             c.loadData();
         }else{
@@ -211,7 +211,7 @@ public class Client {
         }
 
         // UI listener for incoming events
-        ConsoleClientListener ui = new ConsoleClientListener();
+        SwingChatWindow ui = new SwingChatWindow();
 
         // High-level API (outgoing + incoming decoding)
         ClientAPI api = new ClientAPI(
@@ -221,30 +221,37 @@ public class Client {
         );
 
         ui.setApi(api);
-    
+
         // Tell Client to forward incoming packets to ClientAPI
         c.setPacketProcessor(api::handleIncoming);
-    
+
         // Connect
         if (c.connect("localhost", 1666)) {
             // Server may assign a new id
             api.setClientId(Client.getClientState().getClientId());
-    
-            System.out.println("You are now connected with id: " + Client.getClientState().getClientId());
-            System.out.println("Type /help for the list of commands.");
 
-            // Lancement de l'interface
-            new CLIInterface(api);
-    
-            c.disconnect();
-            if(args.length == 0){
-                c.saveData();
-            }else{
-                c.saveData(args[0]);
-            }
-            System.exit(0);
+            System.out.println("You are now connected with id: " + Client.getClientState().getClientId());
+
+            // When the window closes: disconnect + save data + exit
+            ui.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    c.disconnect();
+                    if(args.length == 0){
+                        c.saveData();
+                    }else{
+                        c.saveData(args[0]);
+                    }
+                    System.exit(0);
+                }
+            });
+
+            // Show Swing UI on EDT
+            SwingUtilities.invokeLater(() -> ui.setVisible(true));
+
         } else {
             System.err.println("Connection failed.");
+            System.exit(1);
         }
     }
 }

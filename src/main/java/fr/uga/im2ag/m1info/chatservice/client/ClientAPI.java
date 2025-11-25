@@ -45,15 +45,15 @@ public class ClientAPI {
     /**
      * If the server later tells us our real client id, we can update it.
      */
-    public void setClientId(int clientId) {
-        this.clientId = clientId;
-    }
+    public void setClientId(int clientId) { this.clientId = clientId; }
 
     /*********************************** GETTERS ************************************/ 
 
     /**
      * Getter for the user's username
      */
+    public int getClientId() { return clientId; }
+    
     public String getPseudo() { return Client.getClientState().getPseudo(); }
 
     public List<Message> getConversation(int conversationId) {
